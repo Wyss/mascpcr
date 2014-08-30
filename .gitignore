@@ -1,0 +1,9 @@
+*.o
+*.a
+*.pyc
+.DS_Store
+callgrind.*
+__pycache__
+build
+*.so
+*.cache
