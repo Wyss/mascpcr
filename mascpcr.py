@@ -24,11 +24,10 @@ from Bio import SeqIO
 LOCAL_DIR = os.path.dirname(os.path.realpath(__file__))
 CACHE_DIR = os.path.join(LOCAL_DIR, 'cache')
 
-import buildindex
+import mauve
 import primercandidate
 import genbankfeatures
 import offtarget
-import indexutils
 
 from libnano import seqstr
 
@@ -125,12 +124,16 @@ def doDesignPrimers(
     print('Building index with Mauve...')
     idx_lut = None
     if cache_luts:
+        if not os.path.exists(CACHE_DIR):
+            os.mkdir(CACHE_DIR)
+        elif not os.path.isdir(CACHE_DIR):
+            raise OSError("cache path %s exists but is not a directory" % (CACHE_DIR))
         idx_lut_fp = genCacheFp(repr(locals) + genome_gb + ref_genome_gb,
                                 '.npy')
         if os.path.isfile(idx_lut_fp):
             idx_lut = np.load(idx_lut_fp)
     if idx_lut is None:
-        idx_lut = buildindex.buildIndex(genome_gb, ref_genome_gb,
+        idx_lut = mauve.buildIndex(genome_gb, ref_genome_gb,
                                         genome_seq, ref_genome_seq)
     if cache_luts:
         np.save(idx_lut_fp, idx_lut)
@@ -183,7 +186,7 @@ def designPrimers(
             with open(full_cache_fp, 'rb') as fd:
                 edge_lut.fromfile(fd)
         else:
-            edge_lut = edge_lut or indexutils.findEdges(index_lut)
+            edge_lut = edge_lut or mauve.indexutils.findEdges(index_lut)
             with open(full_cache_fp, 'wb') as fd:
                 edge_lut.tofile(fd)
 
@@ -196,16 +199,16 @@ def designPrimers(
                 mismatch_lut.fromfile(fd)
         else:
             mismatch_lut = mismatch_lut or (mismatch_lut or
-                    indexutils.findMismatches(index_lut, genome, ref_genome))
+                   mauve.indexutils.findMismatches(index_lut, genome, ref_genome))
             with open(full_cache_fp, 'wb') as fd:
                 mismatch_lut.tofile(fd)
 
     else:
         print('Building edge lookup table...')
-        edge_lut = edge_lut or indexutils.findEdges(index_lut)
+        edge_lut = edge_lut or mauve.indexutils.findEdges(index_lut)
         print('Building mismatch lookup table...')
         mismatch_lut = (mismatch_lut or
-                        indexutils.findMismatches(index_lut, genome, ref_genome))
+                        mauve.indexutils.findMismatches(index_lut, genome, ref_genome))
 
     # ~~~~~~~ Generate potential primers for both fwd and rev strands ~~~~~~~ #
     fwd_strand_primer_candidates = []
@@ -758,6 +761,7 @@ def partitionCandidatesREV(discriminatory_primers,
 if __name__ == '__main__':
     GENOME = os.path.join(LOCAL_DIR, 'test_data', '2014_02_18_gen9_54_failed_seg_fixed_with_gc_fixes_and_MLJ_fasta_edits.gb')
     REF_GENOME = os.path.join(LOCAL_DIR, 'test_data', 'mds42_full.gb')
+    
     params = {
         'output_fp_base': 'seg23_masc_pcr_design'
     }
