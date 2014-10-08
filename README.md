@@ -8,7 +8,7 @@ dependencies:
 mauve-py
 libnano
 six
-primer3
+primer3-py
 bitarray
 numpy
 BioPython
