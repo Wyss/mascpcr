@@ -32,7 +32,6 @@ def checkOffTarget(primer, genome, primer_idx, genome_rc=None,
         fwd_hamming_distances[fwd_primer_footprint[0]: \
                               fwd_primer_footprint[1]] = primer_length
         fwd_hotspots, = np.where((fwd_hamming_distances < fwd_hd_thresh))
-
         highest_tm_idx = None
         highest_tm = -100
 
@@ -76,13 +75,13 @@ def checkOffTarget(primer, genome, primer_idx, genome_rc=None,
     res1 = strand_results.get()
     res2 = strand_results.get()
 
-    return res1 if res1[1] > res2[1] else res2
+    return max(res1[0], res2[0])
 # end def
 
-def checkOffTarget3p(primer, genome, primer_idx, 
+def checkOffTarget3p(primer, genome, primer_idx,
                     num_bases=10, genome_rc=None, thresholds=None):
-    ''' Check a primer for 3 prime homology using a threshold for mismatches 
-    in the  last 5 bases based on hamming distance of the last num_bases bases 
+    ''' Check a primer for 3 prime homology using a threshold for mismatches
+    in the  last 5 bases based on hamming distance of the last num_bases bases
     from the 3 prime end
     '''
     genome_rc = genome_rc or seqstr.reverseComplement(genome)
@@ -107,11 +106,11 @@ def checkOffTarget3p(primer, genome, primer_idx,
     def _fwdStrand():
         a = 1
         if num_bases < primer_idx:
-            a = seqstr.can3pMisprime(subprimer, 
+            a = seqstr.can3pMisprime(subprimer,
                                         genome_rc[:primer_idx],
                                         thresholds,
                                         1)
-        b = seqstr.can3pMisprime(subprimer, 
+        b = seqstr.can3pMisprime(subprimer,
                                     genome_rc[primer_idx+primer_length:],
                                     thresholds,
                                     1)
@@ -120,11 +119,11 @@ def checkOffTarget3p(primer, genome, primer_idx,
     def _revStrand():
         a = 1
         if num_bases < primer_idx:
-            a = seqstr.can3pMisprime(subprimer, 
+            a = seqstr.can3pMisprime(subprimer,
                                         genome[:primer_idx],
                                         thresholds,
                                         1)
-        b = seqstr.can3pMisprime(subprimer, 
+        b = seqstr.can3pMisprime(subprimer,
                                     genome[primer_idx+primer_length:],
                                     thresholds,
                                     1)
