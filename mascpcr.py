@@ -111,7 +111,7 @@ def doDesignPrimers(
     ref_genome_seq = str(ref_genome_rec.seq).encode('utf-8')
     print('Building index with Mauve...')
     cache_dir = CACHE_DIR if cache_luts else None
-    idx_arr = indexing.buildIdxLUT(genome_gb, ref_genome_gb, genome_seq, 
+    idx_lut = indexing.buildIdxLUT(genome_gb, ref_genome_gb, genome_seq, 
                                    ref_genome_seq, cache_dir=cache_dir)
     border_arr = None
     if border_feature_types is not None:

@@ -52,7 +52,7 @@ def saveNumpyArrayToCache(np_arr, cache_dir, hash_str):
     consists of the sha256 hash of `hash_str` with a ".npy" extension.
     '''
     cached_fn = sha256fn(hash_str) + '.npy'
-    cached_fp = os.path.join(cached_fp, cached_fn)
+    cached_fp = os.path.join(cache_dir, cached_fn)
     np.save(cached_fp, np_arr)  
 
 
@@ -68,7 +68,8 @@ def getCachedBitArray(cache_dir, hash_str):
     if os.path.isfile(cached_fp):
         try:
             bt_arr = bitarray.bitarray()
-            bt_arr.from_file(cached_fp)
+            with open(cached_fp, 'rb+') as cached_fd:
+                bt_arr.from_file(cached_fd)
         except OSError:
             bt_arr = None
             pass
@@ -80,8 +81,9 @@ def saveBitArrayToCache(bt_arr, cache_dir, hash_str):
     consists of the sha256 hash of `hash_str` with a ".bt" extension.
     '''
     cached_fn = sha256fn(hash_str) + '.bt'
-    cached_fp = os.path.join(cached_fp, cached_fn)
-    bt_arr.tofile(cached_fp)  
+    cached_fp = os.path.join(cache_dir, cached_fn)
+    with open(cached_fp, 'wb+') as cached_fd:
+        bt_arr.tofile(cached_fd)  
 
 
 def buildIdxLUT(genome_gb, ref_genome_gb, genome_seq=None, ref_genome_seq=None,
@@ -118,9 +120,9 @@ def buildEdgeLUT(idx_lut, cache_dir=None):
         cache_str = str(idx_lut) + 'edgeLUT'
         edge_lut = getCachedBitArray(cache_dir, cache_str)
     if edge_lut is None:
-        edge_lut = mauve.indexutils.findEdges(index_lut)
+        edge_lut = mauve.indexutils.findEdges(idx_lut)
         if cache_dir is not None:
-            saveBitArrayToCache(bt_arr, cache_dir, cache_str)
+            saveBitArrayToCache(edge_lut, cache_dir, cache_str)
     return edge_lut
 
 
@@ -136,7 +138,8 @@ def buildMismatchLUT(idx_lut, genome_str, ref_genome_str, cache_dir):
         cache_str = genome_str + ref_genome_str + 'mismatchLUT'
         mismatch_lut = getCachedBitArray(cache_dir, cache_str)
     if mismatch_lut is None:
-        mismatch_lut = mauve.indexutils.findEdges(index_lut)
+        mismatch_lut = mauve.indexutils.findMismatches(idx_lut, genome_str, 
+                                                       ref_genome_str)
         if cache_dir is not None:
-            saveBitArrayToCache(bt_arr, cache_dir, cache_str)
+            saveBitArrayToCache(mismatch_lut, cache_dir, cache_str)
     return mismatch_lut    
