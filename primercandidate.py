@@ -38,16 +38,6 @@ Rev Primer Idx                                   |
 
 '''
 
-def printPrimer(idx, length, index_lut, genome, ref_genome):
-    mapidx = index_lut[idx]
-    if length > 0:
-        print(">", genome[idx-length:idx+1])
-        print(" ", ref_genome[mapidx-length:mapidx+1])
-    else:
-        length = abs(length)
-        print(">", genome[idx:idx+length])
-        print(" ", ref_genome[mapidx:mapidx+length])
-
 
 def generateWtPrimer(d_idx, d_length, d_strand, index_lut, ref_genome, params):
     wt_seq = ref_genome[index_lut[d_idx]:index_lut[d_idx + d_length]]
@@ -64,15 +54,14 @@ def generateWtPrimer(d_idx, d_length, d_strand, index_lut, ref_genome, params):
     )
 
 
-def findCandidateSequence(index, index_lut, genome, ref_genome, edges_lut,
-                          mismatches_lut, params, fwd_strand=True,
-                          disallow_mismatches=False, check_wt_primer=False):
+def findCandidatePrimer(index, index_lut, genome, ref_genome, edges_lut,
+                        mismatches_lut, params, fwd_strand=True,
+                        disallow_mismatches=False, check_wt_primer=False):
 
-    global mismatch_count
     strand_sign = 1 if fwd_strand else -1
 
     tm_range = params.get('tm_range', (60, 65))
-    tm_clip = 40
+    spurious_tm_clip = params.get('spurious_tm_clip', 40)
     size_range = params.get('size_range', (18, 30))
     thermo_params = params.get('thermo_params')
     mv_conc = thermo_params.get('mv_conc', 50)
@@ -87,8 +76,8 @@ def findCandidateSequence(index, index_lut, genome, ref_genome, edges_lut,
                                         [5, 4, 4, 3, 3, 2, 1])
 
     # Score calculation functions for thermodynamic interactions
-    f_weight_homo_dim_tm =  lambda x: -(1.0 / tm_clip)*x
-    f_weight_hairpin_dim_tm = lambda x: -(1.0 / tm_clip)*x
+    f_weight_homo_dim_tm =  lambda x: -(1.0 / spurious_tm_clip)*x
+    f_weight_hairpin_dim_tm = lambda x: -(1.0 / spurious_tm_clip)*x
     f_weight_hetero_dim_tm = lambda x: -2.0 * abs(x - 0.5 * (tm_range[0] +
                                                   tm_range[1]))/(tm_range[1] -
                                                   tm_range[0])
@@ -96,10 +85,11 @@ def findCandidateSequence(index, index_lut, genome, ref_genome, edges_lut,
     if index - size_range[1] < 0 or index + size_range[1] > (len(genome)-1):
         return None
 
+    # Initialize
     delta = size_range[0] - 1
     delta_lim = size_range[1] + 1
-    primer = None           # initialize
-    prev_score = -1000      # initialize
+    primer = None 
+    prev_score = -1000  
 
     if fwd_strand:
         root_idx  = index + 1  # + 1 for exclusive upper-bound indexing
@@ -107,7 +97,6 @@ def findCandidateSequence(index, index_lut, genome, ref_genome, edges_lut,
         # If mismatches are not allowed, check the initial footprint
         if disallow_mismatches:
             if np.sum(mismatches_lut[root_idx - delta:root_idx]) > 0:
-                # mismatch_count += 1
                 # printPrimer(index, delta, index_lut, genome, ref_genome)
                 return None
     else:
@@ -117,7 +106,6 @@ def findCandidateSequence(index, index_lut, genome, ref_genome, edges_lut,
         # If mismatches are not allowed, check the initial footprint
         if disallow_mismatches:
             if np.sum(mismatches_lut[root_idx:root_idx + delta]) > 0:
-                # mismatch_count += 1
                 # printPrimer(index, -delta, index_lut, genome, ref_genome)
                 return None
 
@@ -134,7 +122,6 @@ def findCandidateSequence(index, index_lut, genome, ref_genome, edges_lut,
 
         if disallow_mismatches:
             if mismatches_lut[root_idx - strand_sign * delta] == 1:
-                # mismatch_count += 1
                 return primer
 
         candidate = candidate_seq_area[-delta:]
@@ -160,7 +147,7 @@ def findCandidateSequence(index, index_lut, genome, ref_genome, edges_lut,
                 temp_c=temp_c,
                 max_loop=max_loop)
         hrp_tm = hrp_res.tm if hrp_res is not None else 0.0
-        if hrp_tm > tm_clip:
+        if hrp_tm > spurious_tm_clip:
             return primer
 
         homo_res = p3b.calcHomodimer(candidate,
@@ -171,7 +158,7 @@ def findCandidateSequence(index, index_lut, genome, ref_genome, edges_lut,
                 temp_c=temp_c,
                 max_loop=max_loop)
         homo_tm = homo_res.tm if homo_res is not None else 0.0
-        if homo_tm > tm_clip:
+        if homo_tm > spurious_tm_clip:
             return primer
 
         wt_primer = None
@@ -182,7 +169,7 @@ def findCandidateSequence(index, index_lut, genome, ref_genome, edges_lut,
                 return None
             elif wt_primer.tm < tm_range[0]:
                 continue
-            if max((wt_primer.tm_homo, wt_primer.tm_hairpin)) > tm_clip:
+            if max((wt_primer.tm_homo, wt_primer.tm_hairpin)) > spurious_tm_clip:
                 return None
 
         local_mismatch_idxs = [0] * delta

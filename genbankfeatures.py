@@ -40,47 +40,11 @@ def filterFeatures(gb_data, feature_types=None, feature_regexs=None):
         if feature_types is not None and feature.type not in feature_types:
             return False
         for feat_key, feat_value_re in feature_regexs.values():
-            print(feature.get(feat_key, ''))
             if re.search(feat_value_re, feature.get(feat_key, '')) is None:
                 return False
         return True
 
     return filter(_featureFilter, features)
-
-
-def generateMask(gb_data, feature_types=None, feature_regexs=None,
-                 strand_specific=False):
-    ''' Generate a bitarray mask using the given feature qualifiers (see
-    `filterFeatures` docstring).
-
-    If `strand_specific` is True, two separate bitarrays will be returned,
-    one for the forward strand features, and one for the reverse strand
-    features. Ambiguous features (i.e., strand == 0 or None) will be mapped
-    to the forward strand. Sub features are not currently supported.
-
-    Note: location.end is inclusive (so we need to add 1 for indexing purposes)
-    '''
-    filtered_features = filterFeatures(gb_data, feature_types, feature_regexs)
-    if strand_specific:
-        fwd_bt_arr = bitarray.bitarray(len(gb_data.seq))
-        fwd_bt_arr.setall(0)
-        rev_bt_arr = bitarray.bitarray(len(gb_data.seq))
-        fwd_bt_arr.setall(0)
-    else:
-        bt_arr = bitarray.bitarray(len(gb_data.seq))
-        bt_arr.setall(0)
-    for feat in filtered_features:
-        if feat.sub_features is None:
-            warnings.warn('Feature {} not processed b/c sub features are '
-                          'not currently supported'.format(repr(feat)))
-            continue
-        if strand_specific:
-            bt_arr = rev_bt_arr if feat.location.strand == -1 else fwd_bt_arr
-        bt_arr[feat.location.start:feat.location.end+1] = 1
-    if strand_specific:
-        return fwd_bt_arr, rev_bt_arr
-    else:
-        return bt_arr
 
 
 def findBorders(gb_data, feature_types=None, feature_regexs=None,

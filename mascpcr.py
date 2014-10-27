@@ -24,7 +24,7 @@ from Bio import SeqIO
 LOCAL_DIR = os.path.dirname(os.path.realpath(__file__))
 CACHE_DIR = os.path.join(LOCAL_DIR, 'cache')
 
-import mauve
+import indexing
 import primercandidate
 import genbankfeatures
 import offtarget
@@ -73,18 +73,6 @@ DEFAULT_PARAMS = {
     'output_fp_base': 'mascpcr_out',
     # Minimum number of mismatches for discriminatory primer
     'min_num_mismatches': 2,
-    # # [thermo] Max run of A bases allowed in a primer
-    # 'max_a': 4,
-    # # [thermo] Max run of T bases allowed in a primer
-    # 'max_t': 4,
-    # # [thermo] Max run of G bases allowed in a primer
-    # 'max_g': 3,
-    # # [thermo] Max run of C bases allowed in a primer
-    # 'max_c': 3,
-    # # [thermo] Max run of mixed A + T bases allowed in a primer
-    # 'max_at': 4,
-    # # [thermo] Max run of mixed G + C bases allowed in a primer
-    # 'max_gc': 3,
 }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -122,21 +110,9 @@ def doDesignPrimers(
     genome_seq = str(genome_rec.seq).encode('utf-8')
     ref_genome_seq = str(ref_genome_rec.seq).encode('utf-8')
     print('Building index with Mauve...')
-    idx_lut = None
-    if cache_luts:
-        if not os.path.exists(CACHE_DIR):
-            os.mkdir(CACHE_DIR)
-        elif not os.path.isdir(CACHE_DIR):
-            raise OSError("cache path %s exists but is not a directory" % (CACHE_DIR))
-        idx_lut_fp = genCacheFp(repr(locals) + genome_gb + ref_genome_gb,
-                                '.npy')
-        if os.path.isfile(idx_lut_fp):
-            idx_lut = np.load(idx_lut_fp)
-    if idx_lut is None:
-        idx_lut = mauve.buildIndex(genome_gb, ref_genome_gb,
-                                        genome_seq, ref_genome_seq)
-    if cache_luts:
-        np.save(idx_lut_fp, idx_lut)
+    cache_dir = CACHE_DIR if cache_luts else None
+    idx_arr = indexing.buildIdxLUT(genome_gb, ref_genome_gb, genome_seq, 
+                                   ref_genome_seq, cache_dir=cache_dir)
     border_arr = None
     if border_feature_types is not None:
         print('Finding border indices of feature type(s) {}...'.format(
@@ -149,12 +125,11 @@ def doDesignPrimers(
                          cache_luts=cache_luts, params=params)
 
 
-
 # Main entry point for MASC PCR primer design
 def designPrimers(
-            index_lut,          # LUT mapping genome index to ref_genome index
-            genome,             # Genome sequence string
-            ref_genome,         # Reference genome sequence string
+            idx_lut,            # LUT mapping genome index to ref_genome index
+            genome_str,         # Genome sequence string
+            ref_genome_str,     # Reference genome sequence string
             start_idx,          # Start index for MASC PCR design
             end_idx,            # End index (inclusive) for MASC PCR design
             edge_lut=None,      # Pre-populated edge LUT
@@ -169,6 +144,7 @@ def designPrimers(
     params = _params
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~ Build LUTs if needed ~~~~~~~~~~~~~~~~~~~~~~~~ #
+    cache_dir = None
     if cache_luts:
         cache_dir = os.path.join(LOCAL_DIR, 'cache')
         try:
@@ -176,39 +152,15 @@ def designPrimers(
         except OSError as e:
             if e.errno != 17:
                 raise
-        genome_hash = md5fn(genome)
 
-        print('Building edge lookup table...')
-        cache_fn = genome_hash + '_edgelut'
-        full_cache_fp = os.path.join(cache_dir, cache_fn + '.bitarray')
-        if os.path.isfile(full_cache_fp) and edge_lut is None:
-            edge_lut = bitarray.bitarray()
-            with open(full_cache_fp, 'rb') as fd:
-                edge_lut.fromfile(fd)
-        else:
-            edge_lut = edge_lut or mauve.indexutils.findEdges(index_lut)
-            with open(full_cache_fp, 'wb') as fd:
-                edge_lut.tofile(fd)
+    print('Building edge lookup table...')
+    edge_lut = indexing.buildEdgeLUT(idx_lut, cache_dir=cache_dir)
 
-        print('Building mismatch lookup table...')
-        cache_fn = genome_hash + '_mismatchlut'
-        full_cache_fp = os.path.join(cache_dir, cache_fn + '.bitarray')
-        if os.path.isfile(full_cache_fp) and mismatch_lut is None:
-            mismatch_lut = bitarray.bitarray()
-            with open(full_cache_fp, 'rb') as fd:
-                mismatch_lut.fromfile(fd)
-        else:
-            mismatch_lut = mismatch_lut or (mismatch_lut or
-                   mauve.indexutils.findMismatches(index_lut, genome, ref_genome))
-            with open(full_cache_fp, 'wb') as fd:
-                mismatch_lut.tofile(fd)
+    print('Building mismatch lookup table...')
+    mismatch_lut = indexing.buildMismatchLUT(idx_lut, genome_str, 
+                                             ref_genome_str,
+                                             cache_dir=cache_dir)
 
-    else:
-        print('Building edge lookup table...')
-        edge_lut = edge_lut or mauve.indexutils.findEdges(index_lut)
-        print('Building mismatch lookup table...')
-        mismatch_lut = (mismatch_lut or
-                        mauve.indexutils.findMismatches(index_lut, genome, ref_genome))
 
     # ~~~~~~~ Generate potential primers for both fwd and rev strands ~~~~~~~ #
     fwd_strand_primer_candidates = []
@@ -224,12 +176,12 @@ def designPrimers(
     for idx, is_mismatch in enumerate(mismatch_lut[start_idx:end_idx+1],
                                       start=start_idx):
         if is_mismatch:
-            fc = primercandidate.findCandidateSequence(idx, index_lut, genome,
-                                                       ref_genome, edge_lut,
+            fc = primercandidate.findCandidatePrimer(idx, idx_lut, genome_str,
+                                                       ref_genome_str, edge_lut,
                                                        mismatch_lut, params,
                                                        check_wt_primer=True)
-            rc = primercandidate.findCandidateSequence(idx, index_lut, genome,
-                                                       ref_genome, edge_lut,
+            rc = primercandidate.findCandidatePrimer(idx, idx_lut, genome_str,
+                                                       ref_genome_str, edge_lut,
                                                        mismatch_lut, params,
                                                        fwd_strand=False,
                                                        check_wt_primer=True)
@@ -253,8 +205,8 @@ def designPrimers(
     print('Partitioning primers into fwd and rev bins...')
     fwd_bins_l2s = partitionCandidatesFWD(fwd_strand_primer_candidates,
                             start_idx, end_idx,
-                            index_lut,
-                            genome, ref_genome,
+                            idx_lut,
+                            genome_str, ref_genome_str,
                             edge_lut, mismatch_lut,
                             params=DEFAULT_PARAMS,
                             is_long_to_short=True)
@@ -265,8 +217,8 @@ def designPrimers(
 
     rev_bins_l2s = partitionCandidatesREV(rev_strand_primer_candidates,
                             start_idx, end_idx,
-                            index_lut,
-                            genome, ref_genome,
+                            idx_lut,
+                            genome_str, ref_genome_str,
                             edge_lut, mismatch_lut,
                             params=DEFAULT_PARAMS,
                             is_long_to_short=True)
@@ -290,26 +242,14 @@ def designPrimers(
         # Sort each bin after scoring (highest score first)
         combined_bins[bin_idx].sort(key=lambda rec: -rec[0])
         best_pair = combined_bins[bin_idx][0]
-        fwd_primer_seq = genome[best_pair[1].idx - best_pair[1].length:
+        fwd_primer_seq = genome_str[best_pair[1].idx - best_pair[1].length:
                                 best_pair[1].idx]
         fwd_primer_start_idx = best_pair[1].idx - best_pair[1].length
-        # print('Bin {} | Best primer pair score: {}'.format(bin_idx,
-        #                                                    best_pair[0]))
-        # print('      | Fwd off-target tm: {}'.format(
-        #         offtarget.checkOffTarget(fwd_primer_seq, genome,
-        #                                  fwd_primer_start_idx)[0]))
 
-    # ~~~~~~~~~~~~~~~ Find the best set of compatible primers ~~~~~~~~~~~~~~~ #
-    # A simple BFS should find the best possible set of primer sets given our
-    # constraints of:
-    #   1) No heterodimerization within a set
-    #   2) No off-target binding within the genome
-    #
     print('Finding optimal set of MASC primers...')
 
-
     def getPrimerSeq(primer_candidate):
-        pc_seq = genome[primer_candidate.idx:primer_candidate.idx +
+        pc_seq = genome_str[primer_candidate.idx:primer_candidate.idx +
                           primer_candidate.length]
         if primer_candidate.strand == 1:
             return pc_seq
@@ -351,8 +291,8 @@ def designPrimers(
             if cached_tms is not None:
                 f_tm, r_tm = cached_tms
             else:
-                f_res = offtarget.checkOffTarget(f_seq, genome, f_idx)
-                r_res = offtarget.checkOffTarget(r_seq, genome, r_idx)
+                f_res = offtarget.checkOffTarget(f_seq, genome_str, f_idx)
+                r_res = offtarget.checkOffTarget(r_seq, genome_str, r_idx)
                 f_tm, r_tm = f_res[0], r_res[0]
                 offtarget_tm_cache[bin_idx][primer_pair_idx] = (f_tm, r_tm)
             if max(f_tm, r_tm) > tm_max:
@@ -382,10 +322,10 @@ def designPrimers(
     # for ps in combined_bins[0]:
     #     print(ps[1].strand)
     #     print(ps[1].seq)
-    #     for midx in index_lut[ps[1].idx:ps[1].idx+ps[1].length]:
+    #     for midx in idx_lut[ps[1].idx:ps[1].idx+ps[1].length]:
     #         print('*' if midx == -1 else ' ', end='')
     #     print('')
-    #     print(index_lut[ps[1].idx:ps[1].idx+ps[1].length])
+    #     print(idx_lut[ps[1].idx:ps[1].idx+ps[1].length])
     #     print(ps[1].mismatch_idxs)
     #     print(getPrimerSeq(ps[1]))
     #     print(ps[2].strand)
@@ -489,11 +429,11 @@ def designPrimers(
 
     def generateWtPrimer(discriminatory_primer):
         dp = discriminatory_primer
-        wt_seq = ref_genome[index_lut[dp.idx]:index_lut[dp.idx + dp.length]]
+        wt_seq = ref_genome_str[idx_lut[dp.idx]:idx_lut[dp.idx + dp.length]]
         if dp.strand == -1:
             wt_seq = seqstr.reverseComplement(wt_seq)
         return primercandidate.CandidatePrimer(
-            idx=index_lut[dp.idx],
+            idx=idx_lut[dp.idx],
             seq=wt_seq,
             strand=dp.strand,
             length=dp.length,
@@ -508,9 +448,9 @@ def designPrimers(
         po = primer_obj
         if recoded_idx:
             if gen_wt_idx:
-                po_idx = '{},{}'.format(po.idx, index_lut[po.idx])
+                po_idx = '{},{}'.format(po.idx, idx_lut[po.idx])
             else:
-                po_idx = '{},N/A'.format(po.idx, index_lut[po.idx])
+                po_idx = '{},N/A'.format(po.idx, idx_lut[po.idx])
         else:
             po_idx = 'N/A,{}'.format(po.idx)
         fd.write(','.join([str(x) for x in [
@@ -575,21 +515,21 @@ def designPrimers(
              params.items()]))
 
 
-def printPrimerPair(primerpair, idx_lut, genome, ref_genome):
+def printPrimerPair(primerpair, idx_lut, genome_str, ref_genome_str):
     idx0 = primerpair[0].idx
     l0 = primerpair[0].length
     idx1 = primerpair[1].idx
     l1 = primerpair[1].length
-    print(genome[idx0-l0:idx0+1], genome[idx1-l1:idx1+1])
+    print(genome_str[idx0-l0:idx0+1], genome_str[idx1-l1:idx1+1])
     idxmap0 = idx_lut[idx0]
     idxmap1 = idx_lut[idx1]
-    print(ref_genome[idxmap0-l0:idxmap0+1], ref_genome[idxmap1-l1:idxmap1+1])
+    print(ref_genome_str[idxmap0-l0:idxmap0+1], ref_genome_str[idxmap1-l1:idxmap1+1])
 
 
 def partitionCandidatesFWD(discriminatory_primers,
                         start_idx, end_idx,
-                        index_lut,
-                        genome, ref_genome,
+                        idx_lut,
+                        genome_str, ref_genome_str,
                         edge_lut, mismatch_lut,
                         params=None,
                         is_long_to_short=True):
@@ -648,8 +588,8 @@ def partitionCandidatesFWD(discriminatory_primers,
 
             rev_candidate_best = None
             for j in range(common_primer_end3p, max3p_no_edge + 1):
-                rev_candidate = primercandidate.findCandidateSequence(
-                    j, index_lut, genome, ref_genome, edge_lut, mismatch_lut,
+                rev_candidate = primercandidate.findCandidatePrimer(
+                    j, idx_lut, genome_str, ref_genome_str, edge_lut, mismatch_lut,
                     params, fwd_strand=False,
                     disallow_mismatches=True)
                 if rev_candidate is not None:
@@ -671,8 +611,8 @@ def partitionCandidatesFWD(discriminatory_primers,
 
 def partitionCandidatesREV(discriminatory_primers,
                            start_idx, end_idx,
-                           index_lut,
-                           genome, ref_genome,
+                           idx_lut,
+                           genome_str, ref_genome_str,
                            edge_lut, mismatch_lut,
                            params=None,
                            is_long_to_short=True):
@@ -736,8 +676,8 @@ def partitionCandidatesREV(discriminatory_primers,
                 fwd_candidate_best = None
                 primercandidate.mismatch_count = 0
                 for j in range(common_primer_end3p, min3p_no_edge - 1, -1):
-                    fwd_candidate = primercandidate.findCandidateSequence(
-                        j, index_lut, genome, ref_genome, edge_lut,
+                    fwd_candidate = primercandidate.findCandidatePrimer(
+                        j, idx_lut, genome_str, ref_genome_str, edge_lut,
                         mismatch_lut, params, fwd_strand=True,
                         disallow_mismatches=True)
                     if fwd_candidate is not None:
