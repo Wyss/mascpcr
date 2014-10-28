@@ -21,11 +21,11 @@ LOCAL_DIR = os.path.dirname(os.path.realpath(__file__))
 CACHE_DIR = os.path.join(LOCAL_DIR, 'cache')
 
 import indexing
+import ioutil
 import primercandidate
+import primerpartition
 import genbankfeatures
 import offtarget
-
-from libnano import seqstr
 
 try:
     CPU_COUNT = mp.cpu_count()
@@ -65,8 +65,8 @@ DEFAULT_PARAMS = {
         # [thermo] DNA concentration in nM
         'dna_conc': 200,
     },
-    # Default output base fn / fp
-    'output_fp_base': 'mascpcr_out',
+    # Default output basename for files and sequences
+    'output_basename': 'mascpcr_out',
     # Minimum number of mismatches for discriminatory primer
     'min_num_mismatches': 2,
 }
@@ -201,28 +201,24 @@ def designPrimers(
 
     # ~~~~~~~~~~~~~~ Partition primer candidates into MASC bins ~~~~~~~~~~~~~ #
     print('Partitioning primers into fwd and rev bins...')
-    fwd_bins_l2s = partitionCandidatesFWD(fwd_strand_primer_candidates,
-                                          start_idx, end_idx,
-                                          idx_lut,
-                                          genome_str, ref_genome_str,
-                                          edge_lut, mismatch_lut,
-                                          params=DEFAULT_PARAMS,
-                                          is_long_to_short=True)
+    fwd_bins_l2s = primerpartition.partitionCandidatesFWD(
+                            fwd_strand_primer_candidates, start_idx, end_idx,
+                            idx_lut, genome_str, ref_genome_str, edge_lut,
+                            mismatch_lut, params=DEFAULT_PARAMS,
+                            is_long_to_short=True)
     print("Fwd bin counts (l2s):")
     for i in range(len(fwd_bins_l2s)):
-        print("Bin %d: %d" % (i, len(fwd_bins_l2s[i])))
+        print("\tBin %d: %d" % (i, len(fwd_bins_l2s[i])))
 
 
-    rev_bins_l2s = partitionCandidatesREV(rev_strand_primer_candidates,
-                            start_idx, end_idx,
-                            idx_lut,
-                            genome_str, ref_genome_str,
-                            edge_lut, mismatch_lut,
-                            params=DEFAULT_PARAMS,
+    rev_bins_l2s = primerpartition.partitionCandidatesREV(
+                            rev_strand_primer_candidates, start_idx, end_idx,
+                            idx_lut, genome_str, ref_genome_str, edge_lut,
+                            mismatch_lut, params=DEFAULT_PARAMS,
                             is_long_to_short=True)
     print("\nRev bin counts (l2s)")
     for i in range(len(rev_bins_l2s)):
-        print("Bin %d: %d" % (i, len(rev_bins_l2s[i])))
+        print("\tBin %d: %d" % (i, len(rev_bins_l2s[i])))
 
     # ~~~~~~~~~~~~~~~~~~~~ Combine and score primer pairs ~~~~~~~~~~~~~~~~~~~ #
     print('Combining bins and scoring primer pairs...')
@@ -277,7 +273,6 @@ def designPrimers(
                 offtarget_tm_cache[bin_idx][primer_pair_idx] = (d_tm, w_tm,
                                                                 c_tm)
             if max(d_tm, w_tm, c_tm) > tm_max:
-                print(d_tm, w_tm, c_tm)
                 unacceptable_primers[bin_idx].append(primer_pair_idx)
                 return False
         return True
@@ -328,13 +323,14 @@ def designPrimers(
                 else:
                     idx_clean = True
 
-        print('Checking binned primer sets: {}'.format(set_of_primer_sets))
+        print('Checking binned primer sets: {}'.format(set_of_primer_sets),
+              end='')
         hetero_res = checkSetForHeterodimers(set_of_primer_sets, 40)
         if not hetero_res[0]:
             bin1_idx, bin2_idx = hetero_res[1], hetero_res[2]
             ps1_idx = set_of_primer_sets[bin1_idx]
             ps2_idx = set_of_primer_sets[bin2_idx]
-            print('Heterodimer conflict between {}.{}, {}.{}'.format(bin1_idx,
+            print('->Heterodimer conflict between {}.{}, {}.{}'.format(bin1_idx,
                     ps1_idx, bin2_idx, ps2_idx))
             try:
                 bin1_delta = (combined_bins[bin1_idx][ps1_idx + 1][0] -
@@ -348,7 +344,7 @@ def designPrimers(
                 bin2_delta = -1
             if bin1_delta == -1:
                 if bin2_delta == -1:
-                    print('Failed to find MASC PCR primer set due to total '
+                    print('\nFailed to find MASC PCR primer set due to total '
                           'heterodimer incompatibility between bins {} and '
                           '{}'.format(bin1_idx, bin2_idx))
                     sys.exit(1)
@@ -373,262 +369,12 @@ def designPrimers(
         else:
             break
 
-    print('Found set of primer sets: ', set_of_primer_sets)
+    print('\nFound set of primer sets: ', set_of_primer_sets)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Write CSV output ~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-    def getPrimerPairDelta(pc1, pc2):
-        pc1_5p_idx = pc1.idx
-        pc2_5p_idx = pc2.idx
-        if pc1.strand == -1:
-            pc1_5p_idx += pc1.length
-        if pc2.strand == -1:
-            pc2_5p_idx += pc2.length
-        return abs(pc1.idx - pc2.idx)
-
-
-    def writePrimerRec(fd, primer_obj, recoded_idx=True, gen_wt_idx=False):
-        po = primer_obj
-        if recoded_idx:
-            if gen_wt_idx:
-                po_idx = '{},{}'.format(po.idx, idx_lut[po.idx])
-            else:
-                po_idx = '{},N/A'.format(po.idx, idx_lut[po.idx])
-        else:
-            po_idx = 'N/A,{}'.format(po.idx)
-        fd.write(','.join([str(x) for x in [
-            po.strand, po_idx, po.length, po.seq, sum(po.mismatch_idxs),
-            max(0, po.tm), max(0, po.tm_hairpin), max(0, po.tm_homo)]]) + '\n')
-
-    # Get the output filename from the parameters dictionary. Default to
-    # "mascpcr_out" in the local directory
-    output_fp = params.get('output_fp_base', 'mascpcr_out') + '.csv'
-
-    with open(output_fp, 'w') as fd_out:
-        fd_out.write(','.join([
-            'Bin number',
-            'Potential pairs found',
-            'Pair chosen',
-            'Ideal PCR product size',
-            'Actual PCR product size',
-            'Pair score',
-            'Included # of gen9 fragment junctions',
-            'Discriminatory power (# mismatches)'
-            ]) + '\n')
-        for bin_idx, ps_idx in enumerate(set_of_primer_sets):
-            primer_set = combined_bins[bin_idx][ps_idx]
-            fp = primer_set.d_primer
-            rp = primer_set.c_primer
-            fd_out.write(','.join([str(x) for x in [
-                bin_idx + 1,
-                len(combined_bins[bin_idx]),
-                ps_idx,
-                params['product_sizes'][bin_idx],
-                getPrimerPairDelta(fp, rp),
-                primer_set[0],
-                int(primer_set[0])/50,
-                sum(fp.mismatch_idxs)
-                ]]) + '\n')
-        fd_out.write('\n' + ','.join([
-            'Bin number',
-            'Primer type',
-            'Strand',
-            'Recoded Index',
-            'Wildtype Index',
-            'Length',
-            'Sequence',
-            'Number of mismatches',
-            'Tm (C)',
-            'Hairpin Tm (C)',
-            'Homodimer Tm (C)'
-            ]) + '\n')
-        for bin_idx, ps_idx in enumerate(set_of_primer_sets):
-            primer_set = combined_bins[bin_idx][ps_idx]
-            d_primer = primer_set.d_primer
-            w_primer = primer_set.w_primer
-            c_primer = primer_set.c_primer
-            fd_out.write('{},Discriminatory primer,'.format(bin_idx+1))
-            writePrimerRec(fd_out, d_primer)
-            fd_out.write(',Wildtype primer,')
-            writePrimerRec(fd_out, w_primer, recoded_idx=False)
-            fd_out.write(',Common primer,')
-            writePrimerRec(fd_out, c_primer, gen_wt_idx=True)
-        fd_out.write('\nDESIGN PARAMETERS' + '\n' + '\n'.join(
-            ['{},{}'.format(k, repr(v).replace(',', ';')) for k, v in
-             params.items()]))
-
-
-def partitionCandidatesFWD(discriminatory_primers,
-                        start_idx, end_idx,
-                        idx_lut,
-                        genome_str, ref_genome_str,
-                        edge_lut, mismatch_lut,
-                        params=None,
-                        is_long_to_short=True):
-    """
-    discriminatory_primers: ordered by lowest to highest index of discriminatory_primers
-    priming points
-    is_long_to_short: are the primers sets ordered longest to shortest
-    across the fragment
-    """
-    tm_clip = 40
-    product_sizes = params['product_sizes']
-    bin_size = (end_idx-start_idx)/len(product_sizes)
-    size_tol = params['product_size_tolerance']
-    if is_long_to_short:
-        size_range_iter = iter(product_sizes)
-
-    out_bins = [[] for x in product_sizes]
-
-    current_idx = start_idx
-    current_size = next(size_range_iter)
-    i = 0
-    # discriminatory_primers already sorted by index from 5' - 3' on fwd strand
-    for discriminatory_primer, wt_primer in discriminatory_primers:
-        discriminatory_primer_end5p = discriminatory_primer.idx
-        common_primer_end3p = (discriminatory_primer_end5p + current_size -
-                               size_tol)
-        if common_primer_end3p > current_idx + bin_size:
-            if common_primer_end3p > end_idx:
-                break
-            if (current_idx < discriminatory_primer_end5p < current_idx +
-                bin_size):
-                # only one end out of bounds
-                continue
-
-            # increment bin and size
-            current_idx += bin_size
-            try:
-                current_size = next(size_range_iter)
-            except StopIteration:
-                continue
-            common_primer_end3p = (discriminatory_primer_end5p + current_size -
-                                   size_tol)
-            i += 1
-            if current_idx >= end_idx:
-                break
-
-        if (edge_lut[discriminatory_primer_end5p:
-                     common_primer_end3p].count(1) == 0):
-            # find the limit with no edges in it
-            lim3p = min(common_primer_end3p + 2*size_tol + 1, end_idx + 1)
-            max3p_no_edge = common_primer_end3p
-            for max3p_no_edge in range(common_primer_end3p + 1, lim3p):
-                if edge_lut[max3p_no_edge] != 0:
-                    max3p_no_edge -= 1
-                    break
-
-            rev_candidate_best = None
-            for j in range(common_primer_end3p, max3p_no_edge + 1):
-                rev_candidate = primercandidate.findCommonPrimer(
-                    j, -1, idx_lut, genome_str, ref_genome_str, edge_lut, mismatch_lut,
-                    params)
-                if rev_candidate is not None:
-                    if primer3.calcHeterodimer(
-                            discriminatory_primer.seq,
-                            rev_candidate.seq,
-                            **params['thermo_params']).tm > tm_clip:
-                        break
-                    if rev_candidate_best is None:
-                        rev_candidate_best = rev_candidate
-                    else:
-                        if rev_candidate_best.score < rev_candidate.score:
-                            rev_candidate_best = rev_candidate
-
-            if rev_candidate_best is not None:
-                out_bins[i].append((discriminatory_primer,
-                                    wt_primer,
-                                    rev_candidate_best))
-    return out_bins
-# end def
-
-def partitionCandidatesREV(discriminatory_primers,
-                           start_idx, end_idx,
-                           idx_lut,
-                           genome_str, ref_genome_str,
-                           edge_lut, mismatch_lut,
-                           params=None,
-                           is_long_to_short=True):
-    """
-    discriminatory_primers: ordered by lowest to highest index of discriminatory_primers
-    priming points
-    is_long_to_short: are the primers sets ordered longest to shortest
-    across the fragment
-    """
-    tm_clip = 40
-    product_sizes = params['product_sizes']
-    bin_size = (end_idx-start_idx)/len(product_sizes)
-    size_tol = params['product_size_tolerance']
-    if is_long_to_short:
-        size_range_iter = iter(product_sizes)
-    else:
-        size_range_iter = reversed(product_sizes)
-
-    out_bins = [[] for x in product_sizes]
-
-    current_idx = start_idx
-    current_size = next(size_range_iter)
-    i = 0
-    for discriminatory_primer, wt_primer in discriminatory_primers:
-        discriminatory_primer_end5p = (discriminatory_primer.idx +
-                                       discriminatory_primer.length)
-        common_primer_end3p = (discriminatory_primer_end5p - current_size +
-                               size_tol)
-
-        if discriminatory_primer_end5p > current_idx + bin_size:
-            if discriminatory_primer_end5p > end_idx:
-                break
-            if  current_idx < common_primer_end3p < current_idx + bin_size:
-                # one end out of bounds
-                continue
-
-            # increment bin and size
-            current_idx += bin_size
-            try:
-                current_size = next(size_range_iter)
-            except StopIteration:
-                continue
-            common_primer_end3p = (discriminatory_primer_end5p - current_size +
-                                   size_tol)
-            i += 1
-            if current_idx >= end_idx:
-                break
-
-        if common_primer_end3p > current_idx:
-            # check if edge in the middle
-            if (edge_lut[common_primer_end3p:
-                         discriminatory_primer_end5p+1].count(1) == 0):
-                # find the limit with no edges in it
-                lim3p = max(common_primer_end3p-2*size_tol - 1, start_idx - 1)
-                min3p_no_edge = common_primer_end3p
-                for min3p_no_edge in range(common_primer_end3p-1, lim3p, -1):
-                    if edge_lut[min3p_no_edge] != 0:
-                        min3p_no_edge += 1
-                        break
-
-                fwd_candidate_best = None
-                primercandidate.mismatch_count = 0
-                for j in range(common_primer_end3p, min3p_no_edge - 1, -1):
-                    fwd_candidate = primercandidate.findCommonPrimer(
-                        j, 1, idx_lut, genome_str, ref_genome_str, edge_lut,
-                        mismatch_lut, params)
-                    if fwd_candidate is not None:
-                        if primer3.calcHeterodimer(
-                                discriminatory_primer.seq,
-                                fwd_candidate.seq,
-                                **params['thermo_params']).tm > tm_clip:
-                            break
-                        if fwd_candidate_best is None:
-                            fwd_candidate_best = fwd_candidate
-                        else:
-                            if fwd_candidate_best.score < fwd_candidate.score:
-                                fwd_candidate_best = fwd_candidate
-                if fwd_candidate_best is not None:
-                    out_bins[i].append((discriminatory_primer,
-                                        wt_primer,
-                                        fwd_candidate_best))
-    return out_bins
-# end def
+    ioutil.writeCsvReport(idx_lut, set_of_primer_sets, combined_bins, params)
+    ioutil.writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins, params)
 
 
 if __name__ == '__main__':
@@ -636,7 +382,7 @@ if __name__ == '__main__':
     REF_GENOME = os.path.join(LOCAL_DIR, 'test_data', 'mds42_full.gb')
 
     params = {
-        'output_fp_base': 'seg23_masc_pcr_design'
+        'output_basename': 'seg23'
     }
     doDesignPrimers(
                 genome_gb=GENOME,
