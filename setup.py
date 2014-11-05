@@ -12,10 +12,14 @@ may be install in your Python site-packages directory by running this script).
 
 Python dependencies:
 
+    biopython       https://pypi.python.org/pypi/biopython
     bitarray        https://pypi.python.org/pypi/bitarray/
     libnano         https://github.com/Wyss/libnano
     mauve-py        https://github.com/Wyss/mauve-py
+    numpy           https://pypi.python.org/pypi/numpy
+    primer3-py      https://github.com/benpruitt/primer3-py
     six             https://pypi.python.org/pypi/six
+
 
 See README.md for more information.
 
