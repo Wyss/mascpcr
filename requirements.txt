@@ -1,0 +1,7 @@
+biopython
+bitarray
+libnano
+mauve-py
+numpy
+primer3-py
+six
