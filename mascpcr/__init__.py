@@ -24,10 +24,12 @@ See README.md for more information.
 
 '''
 
-import indexing, ioutil, offtarget, pipeline, primercandidate, primerpartition
+from . import indexing, ioutil, offtarget, pipeline, primercandidate, \
+			  primerpartition, genbankfeatures
 
-from pipeline import generateLUTs, findMascPrimers
+from .pipeline import generateLUTs, findMascPrimers
 
 
 __all__ = ['indexing', 'ioutil', 'offtarget', 'pipeline', 'primercandidate', 
-		   'primerpartition', 'generateLUTs', 'findMascPrimers']
+		   'primerpartition', 'generateLUTs', 'findMascPrimers',
+		   'genbankfeatures']

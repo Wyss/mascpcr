@@ -98,7 +98,8 @@ def buildBorderLUT(gb_data, feature_types=None, feature_regexs=None,
             try:
                 feat_lut[rec[0]] = 1
             except IndexError:
-                print('IndexError while generating border array {}'.format(rec[0]))
+                print('IndexError while generating border array {}'.format(
+                      rec[0]))
         return feat_lut
 
 
@@ -122,7 +123,8 @@ def findAggregateBoundaries(gb_data, feature_types=None, feature_regexs=None):
     (1001, 4000)
 
     '''
-    filtered_features = filterFeatures(gb_data, feature_types, feature_regexs)
+    filtered_features = list(filterFeatures(gb_data, feature_types, 
+                                            feature_regexs))
     if len(filtered_features) == 0:
         return None, None
     min_idx = len(gb_data.seq) + 1

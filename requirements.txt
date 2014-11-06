@@ -1,7 +1,9 @@
-biopython
-bitarray
-libnano
-mauve-py
-numpy
-primer3-py
-six
+biopython       
+bitarray     
+numpy           
+openpyxl        
+primer3-py      
+six        
+
+-e git+git://github.com/Wyss/libnano
+-e git+git://github.com/Wyss/mauve-py
