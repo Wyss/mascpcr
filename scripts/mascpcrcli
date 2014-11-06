@@ -1,0 +1,285 @@
+#!/usr/bin/env python
+'''
+mascpcrcli
+~~~~~~~~~~
+
+Command line interface for the MASC PCR design pipeline. Breaks out all of 
+the core arguments and optional parameters to a clean command line interface
+that can be called from any directory. Output files are written to the 
+current working directory unless an output directory is otherwise specified.
+
+This script is installed in /usr/local/bin by the setup.py script.
+
+As of now there is very little error handling / argument checking built in to
+the pipeline so the onus is on the end user to avoid doing anything dumb. 
+
+usage: mascpcrcli [-h] [--bftypes [BFTYPES [BFTYPES ...]]]
+                  [--bfregexs [BFREGEXS [BFREGEXS ...]]] [--tmmin TMMIN]
+                  [--tmmax TMMAX] [--minsize MINSIZE] [--maxsize MAXSIZE]
+                  [--productsizes [PRODUCTSIZES [PRODUCTSIZES ...]]]
+                  [--sizetol SIZETOL] [--offset OFFSET] [--mvconc MVCONC]
+                  [--dvconc DVCONC] [--dntpconc DNTPCONC] [--dnaconc DNACONC]
+                  [--tmclip TMCLIP] [--minmismatches MINMISMATCHES]
+                  [--outputfp OUTPUTFP] [--outputbn OUTPUTBN] [--noreport]
+                  [--noxlsx]
+                  genome_fp ref_genome_fp start_idx end_idx
+
+mascpcr design pipeline cli
+
+positional arguments:
+  genome_fp             Path to the recoded/refactored genome genbank file
+  ref_genome_fp         Path to the reference genome genbank file
+  start_idx             Start index for mascpcr primer design
+  end_idx               End index for mascpcr primer design
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --bftypes [BFTYPES [BFTYPES ...]]
+                        Border feature types for border detection
+  --bfregexs [BFREGEXS [BFREGEXS ...]]
+                        Border feature qualifier regexes for border detection
+  --tmmin TMMIN         Minimum primer tm (deg. C)
+  --tmmax TMMAX         Maximum primer tm (deg. C)
+  --minsize MINSIZE     Minimum primer size in bp
+  --maxsize MAXSIZE     Maximum primer size in bp
+  --productsizes [PRODUCTSIZES [PRODUCTSIZES ...]]
+                        MASC PCR product sizes -- will also determine the
+                        number of bins
+  --sizetol SIZETOL     Product size tolerance in bp
+  --offset OFFSET       Minimum primer offset from bin edges in bp
+  --mvconc MVCONC       Monovalent cation concentration for thermo calcs (mM)
+  --dvconc DVCONC       Divalent cation concentration for thermo calcs (mM)
+  --dntpconc DNTPCONC   dNTP concentration for thermo calcs (mM)
+  --dnaconc DNACONC     DNA (oligo) concentration for thermo calcs (nM)
+  --tmclip TMCLIP       Tm clip for spurious secondary structure /
+                        heterodimers (deg. C)
+  --minmismatches MINMISMATCHES
+                        Minimum number of mismatches between the
+                        discriminatory and wt primers
+  --outputfp OUTPUTFP   Tm clip for spurious secondary structure /
+                        heterodimers (deg. C)
+  --outputbn OUTPUTBN   Output basename for files and sequence names
+  --noreport            Do not output a pipeline report
+  --noxlsx              Do not output an xlsx file of primer sequences
+'''
+from __future__ import print_function
+
+import argparse
+import os
+import sys
+
+try: 
+    import mascpcr
+except:
+    PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    MODULE_DIR = os.path.join(PACKAGE_DIR, 'mascpcr')
+
+    if not 'mascpcr' in os.listdir(PACKAGE_DIR):
+        raise IOError('`mascpcr` must be installed in your PYTHONPATH or '
+                      'script must be run from within the package directory')
+    sys.path.append(MODULE_DIR)
+    sys.path.append(PACKAGE_DIR)
+    import mascpcr
+
+
+parser = argparse.ArgumentParser(description='mascpcr design pipeline cli')
+
+# ~~~~~~~~~ Required arguments (gb filepaths, start and end indices) ~~~~~~~~ #
+
+parser.add_argument(
+    'genome_fp',
+    help='Path to the recoded/refactored genome genbank file',
+)
+parser.add_argument(
+    'ref_genome_fp',
+    help='Path to the reference genome genbank file',
+)
+parser.add_argument(
+    'start_idx',
+    type=int,
+    help='Start index for mascpcr primer design',
+)
+parser.add_argument(
+    'end_idx',
+    type=int,
+    help='End index for mascpcr primer design',
+)
+
+# ~~~~~~~~~~~~~~~~~ Optional arguments / pipeline parameters ~~~~~~~~~~~~~~~~ #
+
+parser.add_argument(
+    '--bftypes',
+    nargs='*',
+    help='Border feature types for border detection'
+)
+parser.add_argument(
+    '--bfregexs',
+    nargs='*',
+    help='Border feature qualifier regexes for border detection'
+)
+parser.add_argument(
+    '--tmmin',
+    type=float,
+    help='Minimum primer tm (deg. C)'
+)
+parser.add_argument(
+    '--tmmax',
+    type=float,
+    help='Maximum primer tm (deg. C)'
+)
+parser.add_argument(
+    '--minsize',
+    type=int,
+    help='Minimum primer size in bp'
+)
+parser.add_argument(
+    '--maxsize',
+    type=int,
+    help='Maximum primer size in bp'
+)
+parser.add_argument(
+    '--productsizes',
+    nargs='*',
+    type=int,
+    help='MASC PCR product sizes -- will also determine the number of bins'
+)
+parser.add_argument(
+    '--sizetol',
+    type=int,
+    help='Product size tolerance in bp'
+)
+parser.add_argument(
+    '--offset',
+    type=int,
+    help='Minimum primer offset from bin edges in bp'
+)
+parser.add_argument(
+    '--mvconc',
+    type=float,
+    help='Monovalent cation concentration for thermo calcs (mM)'
+)
+parser.add_argument(
+    '--dvconc',
+    type=float,
+    help='Divalent cation concentration for thermo calcs (mM)'
+)
+parser.add_argument(
+    '--dntpconc',
+    type=float,
+    help='dNTP concentration for thermo calcs (mM)'
+)
+parser.add_argument(
+    '--dnaconc',
+    type=float,
+    help='DNA (oligo) concentration for thermo calcs (nM)'
+)
+parser.add_argument(
+    '--tmclip',
+    type=float,
+    help='Tm clip for spurious secondary structure / heterodimers (deg. C)'
+)
+parser.add_argument(
+    '--minmismatches',
+    type=int,
+    help='Minimum number of mismatches between the discriminatory and wt ' \
+         'primers'
+)
+parser.add_argument(
+    '--outputfp',
+    help='Tm clip for spurious secondary structure / heterodimers (deg. C)'
+)
+parser.add_argument(
+    '--outputbn',
+    help='Output basename for files and sequence names'
+)
+parser.add_argument(
+    '--noreport',
+    action='store_false',
+    help='Do not output a pipeline report'
+)
+parser.add_argument(
+    '--noxlsx',
+    action='store_false',
+    help='Do not output an xlsx file of primer sequences'
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~ Now parse and validate the args ~~~~~~~~~~~~~~~~~~~~~ #
+
+args = parser.parse_args()
+
+# Check filepaths
+genome_fp = args.genome_fp
+if not os.path.isfile(genome_fp):
+    raise ValueError('genome_fp: "%s" is not a valid filepath' % genome_fp)
+
+ref_genome_fp = args.ref_genome_fp
+if not os.path.isfile(ref_genome_fp):
+    raise ValueError('ref_genome_fp: "%s" is not a valid filepath' % 
+                     ref_genome_fp)
+
+start_idx = args.start_idx
+end_idx = args.end_idx
+
+# Check and accumulate optional args
+
+params = {}
+
+border_feature_types = args.bftypes
+border_feature_regexs = args.bfregexs
+
+if args.tmmin is not None and args.tmmax is not None:
+    params['tm_range'] = (args.tmmin, args.tmmax)
+
+if args.minsize is not None and args.maxsize is not None:
+    params['size_range'] = (args.minsize, args.maxsize)
+
+if args.productsizes is not None:
+    params['product_sizes'] = args.productsizes
+
+if args.sizetol is not None:
+    params['product_size_tolerance'] = args.sizetol
+
+if args.offset is not None:
+    params['bin_edge_offset'] = args.offset
+
+if args.mvconc is not None:
+    params['mv_conc'] = args.mvconc
+
+if args.dvconc is not None:
+    params['dv_conc'] = args.dvconc
+
+if args.dntpconc is not None:
+    params['dntp_conc'] = args.dntpconc
+
+if args.dnaconc is not None:
+    params['dna_conc'] = args.dnaconc
+
+if args.tmclip is not None:
+    params['spurious_tm_clip'] = args.tmclip
+
+if args.minmismatches is not None:
+    params['min_num_mismatches'] = args.minmismatches
+
+if args.outputfp is not None:
+    params['output_fp'] = args.outputfp
+
+if args.outputbn is not None:
+    params['output_basename'] = args.outputbn
+
+if args.noreport is not None:
+    params['output_report'] = args.noreport
+
+if args.noxlsx is not None:
+    params['output_xlsx'] = args.noxlsx
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Now run the pipeline ~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+init_ds = mascpcr.generateLUTs(genome_fp, ref_genome_fp, start_idx, end_idx, 
+                               border_feature_types, border_feature_regexs)
+
+(genome_str, ref_genome_str, idx_lut, 
+ edge_lut, mismatch_lut, border_lut) = init_ds
+
+mascpcr.findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, 
+                        end_idx, edge_lut, mismatch_lut, border_lut, params)

@@ -1,0 +1,112 @@
+#!/usr/bin/env python
+'''
+mascpcrfeatidx
+~~~~~~~~~~~~~~
+
+Command line tool to find the outer-most boundary indices of a set of genbank
+features defined by a set of feature types and feature qualifier key:regex
+pairs. 
+
+This wraps mascpcr.genbankfeatures.findAggregateBoundaries. Here is the 
+docstring for reference:
+
+    Find and return the min and max indices of a group of features matching
+        `feature_types` and/or `feature_regexs`. For example, let's say your 
+        genbank file has the following features:
+
+        synth_seg   1001..2000
+                        /label="seg17_000"
+        synth_seg   2001..3000
+                        /label="seg17_001"
+        synth_seg   3001..4000
+                        /label="seg17_002"
+        synth_seg   4001..5000
+                        /label="seg18_000"
+
+        Then the following call will produce this output:
+
+        >>>findAggregateBoundaries(gb_data, ['synth_seg'], 
+                                   {'label': r'seg17.*'})
+        (1001, 4000)
+
+The equivalent command line call using this script would look something like
+this:
+
+$ mascpcrfeatidx bobsgenome.gb -t synth_seg -q label seg17.*
+
+'''
+from __future__ import print_function
+
+import argparse
+import os
+import sys
+
+from Bio import SeqIO
+
+try: 
+    import mascpcr
+except:
+    PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    MODULE_DIR = os.path.join(PACKAGE_DIR, 'mascpcr')
+
+    if not 'mascpcr' in os.listdir(PACKAGE_DIR):
+        raise IOError('`mascpcr` must be installed in your PYTHONPATH or '
+                      'script must be run from within the package directory')
+    sys.path.append(MODULE_DIR)
+    sys.path.append(PACKAGE_DIR)
+    import mascpcr
+
+
+parser = argparse.ArgumentParser(description='mascpcr design pipeline cli')
+
+parser.add_argument(
+    'genbank_fp',
+    help='Genbank filepath'
+)
+parser.add_argument(
+    '-t', '--types',
+    nargs='*',
+    required=True,
+    help='Genbank feature type(s)'
+)
+parser.add_argument(
+    '-q', '--qregexs',
+    nargs='*',
+    help='Genbank qualifier name:regex list'
+)
+
+args = parser.parse_args()
+
+genbank_fp = args.genbank_fp
+if not os.path.isfile(genbank_fp):
+    raise ValueError('genbank_fp: "%s" is not a valid filepath' % genbank_fp)
+
+feat_types = list(args.types)
+
+q_regex_dict = None
+if args.qregexs is not None:
+    q_regexs = list(args.qregexs)
+
+    if len(q_regexs) % 2 > 0:
+        raise ValueError('Qualifier:regex pairs list is not complete (uneven '
+                         'number of args)')
+
+    q_regex_iter = iter(q_regexs)
+    q_regex_dict = {}
+    for _ in range(len(q_regexs) // 2):
+        k, v = next(q_regex_iter), next(q_regex_iter)
+        q_regex_dict[k] = v
+
+print('Finding outer boundary indices of features with type(s): {} and '
+      'qualifiers with matching regexs {}'.format(feat_types, q_regex_dict))
+
+gb_data = SeqIO.read(genbank_fp, 'gb')
+
+start_idx, end_idx = mascpcr.genbankfeatures.findAggregateBoundaries(
+    gb_data, feat_types, q_regex_dict)
+
+if min(start_idx, end_idx) is not None:
+    print('Start index:\t%d' % start_idx)
+    print('End index:\t%d' % end_idx)
+else:
+    print('No matching genbank features were found.')
