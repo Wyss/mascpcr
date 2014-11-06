@@ -11,14 +11,15 @@ from ._common import RECODED_GENOME_FP, REFERENCE_GENOME_FP, TEST_OUTPUT_DIR, \
 class TestPipeline(unittest.TestCase):
 
     def test_findMascPrimers(self):
-        idx_lut, edge_lut, mismatch_lut, border_lut = pipeline.generateLUTs(
-            genome_gb=RECODED_GENOME_FP,
-            ref_genome_gb=REFERENCE_GENOME_FP,
-            start_idx=1039203,        # Start index for seg 23
-            end_idx=1084477,          # End index for seg 23
-            border_feature_types=['synth_fragment'],
-            cache_luts=True,
-            cache_dir=TEST_CACHE_DIR
+        genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut, \
+            border_lut = pipeline.generateLUTs(
+                genome_gb=RECODED_GENOME_FP,
+                ref_genome_gb=REFERENCE_GENOME_FP,
+                start_idx=1039203,        # Start index for seg 23
+                end_idx=1084477,          # End index for seg 23
+                border_feature_types=['synth_fragment'],
+                cache_luts=True,
+                cache_dir=TEST_CACHE_DIR
         )
         # We have to prevent the output file from containing the parameters
         # as it will dump the absolute filepaths, which makes file comparisons

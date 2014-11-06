@@ -51,8 +51,9 @@ DEFAULT_PARAMS = {
     # 'product_sizes': (850, 700, 600, 500, 400, 300, 250, 200, 150, 100),
     # PCR product size tolerance (+/- this value in bp)
     'product_size_tolerance': 10,
-    # minimum base distance of a primer to the boundaries of a segment
-    'segment_edge_offset': 67,
+    # minimum base distance of a primer to the boundaries of a bin 
+    # (not implemented)
+    'bin_edge_offset': 67,
     # The following parameters are related to thermodynamic calculations
     'thermo_params': {
         # [thermo] Monovalent cation concentration in mM
@@ -138,7 +139,8 @@ def generateLUTs(
                                                     border_feature_regexs)
         print('Found {} border indices'.format(border_lut.count(1)))
 
-    return idx_lut, edge_lut, mismatch_lut, border_lut
+    return (genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut, 
+            border_lut)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~ Main pipeline entry point ~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -305,6 +307,7 @@ def findMascPrimers(
                 if len(unacceptable_primers[bin_idx]) == bin_lengths[bin_idx]:
                     print('Failed to find MASC PCR primer set due to total '
                           'mispriming of primer sets in bin {}'.format(bin_idx))
+                    sys.exit(1)
                 while (set_of_primer_sets[bin_idx] in
                        unacceptable_primers[bin_idx]):
                     if set_of_primer_sets[bin_idx] < bin_lengths[bin_idx] - 1:

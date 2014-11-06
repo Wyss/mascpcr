@@ -5,7 +5,7 @@
 ======================================================================
 
 ``mascpcr`` is a native Python pipeline for designing multiplex allele-
-specific colony (MASC) PCR primers for genome engineering pipelines. 
+specific colony (MASC) PCR primers for genome engineering applications. 
 
 Setup / installation is fairly simple (the package may be used in place or
 may be install in your Python site-packages directory by running this script).
@@ -49,5 +49,6 @@ setup(
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)'
     ],
     packages=['mascpcr'],
-    test_suite= "tests"
+    test_suite='tests',
+    scripts=['scripts/mascpcrcli', 'scripts/mascpcrfeatidx']
 )

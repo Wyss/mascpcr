@@ -123,6 +123,8 @@ def findAggregateBoundaries(gb_data, feature_types=None, feature_regexs=None):
 
     '''
     filtered_features = filterFeatures(gb_data, feature_types, feature_regexs)
+    if len(filtered_features) == 0:
+        return None, None
     min_idx = len(gb_data.seq) + 1
     max_idx = -1
     for ff in filtered_features:
