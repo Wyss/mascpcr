@@ -71,13 +71,14 @@ import sys
 try: 
     import mascpcr
 except:
-
     PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    sys.path.append(PACKAGE_DIR)
+    MODULE_DIR = os.path.join(PACKAGE_DIR, 'mascpcr')
 
     if not 'mascpcr' in os.listdir(PACKAGE_DIR):
         raise IOError('`mascpcr` must be installed in your PYTHONPATH or '
                       'script must be run from within the package directory')
+    sys.path.append(MODULE_DIR)
+    sys.path.append(PACKAGE_DIR)
     import mascpcr
 
 
