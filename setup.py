@@ -36,7 +36,7 @@ setup(
     version='0.0.1',
     license='GPLv2',
     author='Ben Pruitt, Nick Conway',
-    author_email='bpruittvt@gmail.com',
+    author_email='benjamin.pruitt@wyss.harvard.edu',
     url='https://github.com/wyss/mascpcr',
     description='MASC PCR design pipeline',
     classifiers=[

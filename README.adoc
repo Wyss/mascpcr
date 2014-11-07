@@ -1,0 +1,45 @@
+= mascpcr: (multiplex allele-specific [colony] PCR) design pipeline
+Ben Pruitt; Nick Conway
+2014-11-07
+
+MAS[C] PCR is a powerful technique used to genotype or otherwise characterize
+large regions of maniuplatedDNA. A typical use case is in the confirmation 
+of large-scale genomic insertions or recoding in the context of genome 
+engineering.
+
+The general principle upon which MAS[C] PCR operates is that there are regions
+of both sequence homology and divergence between the "wildtype" target region
+and the "recoded" target region. We can exploit this patchwork to design a
+collection of primer sets that span the region of interest and allow for 
+highly-specific genotyping with little ambiguity.
+
+*The `mascpcr` package is a native Python pipeline for highly-configurable, 
+lightweight, MAS[C] PCR primer collection design*
+
+TIP: Complete documentation is provided in the asciidoc files in the `docs/`
+     directory of this package. 
+
+
+== Installation
+
+Installing dependencies: `$ pip install -r requirements.txt`
+Installing mascpcr: `python setup.py install`
+
+TIP: This will install mascpcr in the PYTHONPATH of your current `env`, which
+will allow you to import `mascpcr` and use the command line interface from
+within any directory. You can also skip this step and run the pipeline from
+within the root directory of the package.
+
+
+== Usage 
+
+See `examples/` if you want to hit the ground running. Complete documentation 
+is provided in the `docs/` directory.
+
+
+== More information & citations
+TODO
+
+
+== License
+MIT
