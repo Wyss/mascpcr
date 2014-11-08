@@ -35,8 +35,8 @@ $ mascpcrcli recoded_genome.gb reference_genome.gb 1202000 1252000
 5. MASC primer design end index (inclusive)
 ----
 
-_ `mascpcr` can also be imported and used as a Python module. See `examples/`
-for some example use cases, and `docs/` for more information. _
+_Of course, `mascpcr` can also be imported and used as a Python module. See `examples/`
+for some example use cases, and `docs/` for more information._
 
 == Future plans
 `mascpcr` functions well for our current needs, so we have no immediate plans
