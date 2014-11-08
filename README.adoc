@@ -24,7 +24,7 @@ $ pip install biopython bitarray numpy openpyxl primer3-py six cython
 $ pip install git+https://github.com/Wyss/libnano
 $ pip install git+https://github.com/Wyss/mauve-py
 ----
-
+[start=3]
 3. (optional) Run `setup.py install` to install the package on your PYTHONPATH.
 
 _Use of a virtualenv is encouraged. For more configurable installation options, 
