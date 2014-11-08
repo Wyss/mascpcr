@@ -12,12 +12,30 @@ Features::
     * Detailed reporting and order-ready .xlsx output 
     * Low level toolkit for more sophisticated MASC PCR-related design tasks
 
+
 == Installation
 
 1. Make sure you have `setuptools` installed (`pip install setuptools`).
-2. Run `setup.py install`. This will install the dependencies and the package.
+2. Install the necessary dependencies:
 
-_For more configurable installation options, see the docs._ 
+====
+pip-installable:
+    biopython       https://pypi.python.org/pypi/biopython
+    bitarray        https://pypi.python.org/pypi/bitarray/
+    numpy           https://pypi.python.org/pypi/numpy
+    openpyxl        https://pypi.python.org/pypi/openpyxl
+    primer3-py      https://github.com/benpruitt/primer3-py
+    six             https://pypi.python.org/pypi/six
+download and install separately:
+    libnano         https://github.com/Wyss/libnano
+    mauve-py        https://github.com/Wyss/mauve-py
+====
+
+3. Run `setup.py install` to install the package on your PYTHONPATH.
+
+_Use of a virtualenv is encouraged. For more configurable installation options, 
+see the docs._ 
+
 
 == Usage
 
@@ -35,13 +53,15 @@ $ mascpcrcli recoded_genome.gb reference_genome.gb 1202000 1252000
 5. MASC primer design end index (inclusive)
 ----
 
-_Of course, `mascpcr` can also be imported and used as a Python module. See `examples/`
-for some example use cases, and `docs/` for more information._
+_Of course, `mascpcr` can also be imported and used as a Python module. See 
+`examples/` for some example use cases, and `docs/` for more information._
+
 
 == Future plans
 `mascpcr` functions well for our current needs, so we have no immediate plans
-for further development. That being said, we are happy to help you expand / adapt 
-the code base for your specific project needs.
+for further development. That being said, we are happy to help you expand / 
+adapt the code base for your specific project needs.
+
 
 == License
 MIT

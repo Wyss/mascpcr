@@ -50,6 +50,8 @@ setup(
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)'
     ],
     packages=['mascpcr'],
+    install_requires=['numpy', 'bitarray', 'biopython', 'openpyxl', 'six', 
+                      'primer3-py', 'mauve-py', 'libnano'],
     test_suite='tests',
     scripts=['scripts/mascpcrcli', 'scripts/mascpcrfeatidx']
 )
