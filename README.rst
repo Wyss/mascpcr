@@ -1,8 +1,6 @@
 =======
 mascpcr
 =======
-Ben Pruitt; Nick Conway
-2014-11-07
 
 ``mascpcr`` is a toolkit and configurable pipeline for generating multiplex 
 allele-specific colony (MASC) PCR primer sets.
