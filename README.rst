@@ -20,20 +20,13 @@ Installation
 ------------
 
 1. Make sure you have ``setuptools`` installed (``pip install setuptools``).
-2. Install the necessary dependencies:
+2. Install the necessary dependencies::
 
-pip-installable:
-    - `biopython       <https://pypi.python.org/pypi/biopython>`_
-    - `bitarray        <https://pypi.python.org/pypi/bitarray/>`_
-    - `numpy           <https://pypi.python.org/pypi/numpy>`_
-    - `openpyxl        <https://pypi.python.org/pypi/openpyxl>`_
-    - `primer3-py      <https://github.com/benpruitt/primer3-py>`_
-    - `six             <https://pypi.python.org/pypi/six>`_
-non-pip installable (as of the writing of this document):
-    - `libnano         <https://github.com/Wyss/libnano>`_
-    - `mauve-py        <https://github.com/Wyss/mauve-py>`_
+    $ pip install biopython bitarray numpy openpyxl primer3-py six cython
+    $ pip install git+https://github.com/Wyss/libnano
+    $ pip install git+https://github.com/Wyss/mauve-py
 
-3. Run `setup.py install` to install the package on your PYTHONPATH.
+3. (optional) Run `setup.py install` to install the package on your PYTHONPATH.
 
 *Use of a virtualenv is encouraged. For more configurable installation options, 
 see the docs.*
