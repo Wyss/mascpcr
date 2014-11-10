@@ -107,7 +107,7 @@ def checkOffTarget3p(primer_str, genome_str, primer_idx,
             thresholds[5] = 1
             thresholds[6] = 1
         else:
-            raise ValueError("num_bases too low for defualt thresholds")
+            raise ValueError("num_bases too low for default thresholds")
 
     strand_results = mp.Queue()
 
