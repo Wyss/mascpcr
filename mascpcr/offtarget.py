@@ -1,12 +1,28 @@
-'''
-offtarget | offtarget.py
-~~~~~~~~~~~~~~~~~~~~~~~~
+# Copyright (C) 2014. Ben Pruitt & Nick Conway
+# See LICENSE for full GPLv2 license.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+"""
+mascpcr.offtarget
+~~~~~~~~~~~~~~~~~
 
 Check a primer sequence for potential mispriming events against a genome
 sequence. Methods are provided for both heterodimization calculations and 
 3p end stability calculations.
 
-'''
+"""
 
 import multiprocessing as mp
 
@@ -18,7 +34,7 @@ from libnano import seqstr
 
 def checkOffTarget(primer_str, genome_str, primer_idx, genome_rc_str=None,
                    hamming_percentile=0.05):
-    ''' Check for the strongest off-target hybridization of `primer_str`
+    """ Check for the strongest off-target hybridization of `primer_str`
     on both the fwd and rev strands of `genome`.
 
     The 5' index of the primer on the fwd strand must be provided for masking
@@ -27,7 +43,7 @@ def checkOffTarget(primer_str, genome_str, primer_idx, genome_rc_str=None,
 
     `hamming_percentile` specifies the percentile cutoff for hamming distance
     matches that will be screened with a thermodynamic alignment.
-    '''
+    """
     genome_rc_str = genome_rc_str or seqstr.reverseComplement(genome_str)
     primer_length = len(primer_str)
 
@@ -88,10 +104,10 @@ def checkOffTarget(primer_str, genome_str, primer_idx, genome_rc_str=None,
 
 def checkOffTarget3p(primer_str, genome_str, primer_idx,
                     num_bases=10, genome_rc_str=None, thresholds=None):
-    ''' Check a primer for 3 prime homology using a threshold for mismatches
+    """ Check a primer for 3 prime homology using a threshold for mismatches
     in the  last 5 bases based on hamming distance of the last num_bases bases
     from the 3 prime end
-    '''
+    """
     genome_rc_str = genome_rc_str or seqstr.reverseComplement(genome_str)
     primer_length = len(primer_str)
     subprimer = primer_str[-num_bases:]

@@ -1,5 +1,23 @@
 #!/usr/bin/env python
-'''
+
+# Copyright (C) 2014. Ben Pruitt & Nick Conway
+# See LICENSE for full GPLv2 license.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+"""
 mascpcrcli
 ~~~~~~~~~~
 
@@ -61,7 +79,7 @@ optional arguments:
   --outputbn OUTPUTBN   Output basename for files and sequence names
   --noreport            Do not output a pipeline report
   --noxlsx              Do not output an xlsx file of primer sequences
-'''
+"""
 from __future__ import print_function
 
 import argparse
@@ -225,7 +243,7 @@ end_idx = args.end_idx
 params = {}
 
 border_feature_types = args.bftypes
-border_feature_regexs = args.bfregexs
+border_qualifier_regexs = args.bfregexs
 
 if args.tmmin is not None and args.tmmax is not None:
     params['tm_range'] = (args.tmmin, args.tmmax)
@@ -276,7 +294,7 @@ if args.noxlsx is not None:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Now run the pipeline ~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 init_ds = mascpcr.generateLUTs(genome_fp, ref_genome_fp, start_idx, end_idx, 
-                               border_feature_types, border_feature_regexs)
+                               border_feature_types, border_qualifier_regexs)
 
 (genome_str, ref_genome_str, idx_lut, 
  edge_lut, mismatch_lut, border_lut) = init_ds

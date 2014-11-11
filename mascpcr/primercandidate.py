@@ -1,11 +1,27 @@
-'''
-primercandidate | primercandidate.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Copyright (C) 2014. Ben Pruitt & Nick Conway
+# See LICENSE for full GPLv2 license.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+"""
+mascpcr.primercandidate
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Methods for finding discriminatory and common primer candidates given
 a target index and the necessary genome information and LUTs.
 
-'''
+"""
 
 import os
 
@@ -40,7 +56,7 @@ CandidatePrimer = namedtuple('CandidatePrimer',
          ])                     #   power, homo/hairpin tm, etc.
 
 
-'''
+"""
 Primer indexing information
 
 The primer index provided in the CandidatePrimer tuple is the 5'-most index
@@ -52,7 +68,7 @@ Genome          ATTACCGATACCAATTGACCAGTTGGGACCCAGTTGACCAGTTGGACCCAGTTAGC
 Rev Primer                                       <<<<<<<<<<<<<<<<<<<
 Rev Primer Idx                                   |
 
-'''
+"""
 
 
 def findDiscriminatoryPrimer(idx, strand, idx_lut, genome, ref_genome,

@@ -1,6 +1,23 @@
-'''
-primerpartition | primerpartition.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Copyright (C) 2014. Ben Pruitt & Nick Conway
+# See LICENSE for full GPLv2 license.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+"""
+mascpcr.primerpartition
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Contains methods for partitioning PrimerCandidates into the MASC PCR bins.
 
@@ -8,7 +25,7 @@ The methods are strand specific (partitionCandidatesFWD partitions forward
 strand candidates and partitionCandidatesREV partitions reverse strand
 candidates)
 
-'''
+"""
 
 import primer3
 
@@ -102,10 +119,10 @@ def partitionCandidatesREV(primer_candidates,
                            genome_str, ref_genome_str,
                            edge_lut, mismatch_lut,
                            params=None):
-    '''
+    """
     primer_candidates: ordered by lowest to highest index of primer_candidates
     priming points
-    '''
+    """
     spurious_tm_clip =      params['spurious_tm_clip']
     product_sizes =         params['product_sizes']
     size_tol =              params['product_size_tolerance']

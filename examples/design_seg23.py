@@ -1,4 +1,4 @@
-'''
+"""
 design_seg23 | examples/design_seg23.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -8,7 +8,7 @@ primers for a single inserted segment ("seg23").
 For one-off design tasks you might be better off using the `mascpcrcli` 
 script, but you could also modify this script to suit your needs.
 
-'''
+"""
 from __future__ import print_function  # Python 2/3 compatibility
 
 import os
@@ -66,7 +66,7 @@ start_idx, end_idx = mascpcr.genbankfeatures.findAggregateBoundaries(
     # to make sure that the regular expression "seg23.*" matches its contents
     # (regex refresher: seg23.* will match "seg23" followed by any characters,
     #  e.g., seg23_001)
-    feature_regexs={'label':'seg23.*'}
+    qualifier_regexs={'label':'seg23.*'}
 )
 
 # As I already know the expected start and end indicies of seg23, we will 

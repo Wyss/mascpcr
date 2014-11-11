@@ -1,4 +1,4 @@
-'''
+"""
 design_seg23 | examples/design_seg23-30.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -9,7 +9,7 @@ You can use the command line interface in a similar manner (using a
 shell script for calls) but this will be faster as the genbank files
 only need to be read in and indexed once. 
 
-'''
+"""
 from __future__ import print_function  # Python 2/3 compatibility
 
 import os
@@ -64,7 +64,7 @@ for seg_num in range(23, 31):
         # checkto make sure that the regular expression "seg23.*" matches its 
         # contents(regex refresher: seg23.* will match "seg23" followed by any 
         # characters, e.g., seg23_001)
-        feature_regexs={'label':'seg%d.*' % seg_num}
+        qualifier_regexs={'label':'seg%d.*' % seg_num}
     )
 
     seg_indices[seg_num] = (start_idx, end_idx)

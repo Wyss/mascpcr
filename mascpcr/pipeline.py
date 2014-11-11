@@ -1,13 +1,29 @@
-'''
-pipeline | pipeline.py
-~~~~~~~~~~~~~~~~~~~~~~
+# Copyright (C) 2014. Ben Pruitt & Nick Conway
+# See LICENSE for full GPLv2 license.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+"""
+mascpcr.pipeline
+~~~~~~~~~~~~~~~~
 
 This is the main entry point for MASC PCR primer design. It contains the core
 `findMascPrimers` method as well as some helper methods related to LUT 
 generation (if you're generating multiple MASC PCR primer sets from the same
 genome/reference genome it's best to just make these calls once).
 
-'''
+"""
 from __future__ import print_function
 
 import copy
@@ -97,7 +113,7 @@ def generateLUTs(
             start_idx,          # Start index for MASC PCR design
             end_idx,            # End index (inclusive) for MASC PCR design
             border_feature_types=None, # List of genbank feature types
-            border_feature_regexs=None, # List of qualifier: regex keys
+            border_qualifier_regexs=None, # List of qualifier: regex keys
             cache_luts=True,    # Whether or not to cache the LUTs
             cache_dir=CACHE_DIR):   # Directory in which to cache LUTs
 
@@ -136,7 +152,7 @@ def generateLUTs(
               ','.join(border_feature_types)))
         border_lut = genbankfeatures.buildBorderLUT(genome_rec,
                                                     border_feature_types,
-                                                    border_feature_regexs)
+                                                    border_qualifier_regexs)
         print('Found {} border indices'.format(border_lut.count(1)))
 
     return (genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut, 
