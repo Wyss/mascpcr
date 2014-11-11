@@ -6,9 +6,9 @@ mascpcr
 allele-specific colony (MASC) PCR primer sets.
 
 Features:
-    * "Minimal input" pipeline -- only requires 2 genbank files and target
+    * "Minimal input" pipeline -- requires 2 genbank files and target
       region indices to produce standard MASC PCR primer sets 
-    * Module-based and command line interface 
+    * Module-based and command line interfaces 
     * Detailed reporting and order-ready .xlsx output 
     * Low level toolkit for more sophisticated MASC PCR-related design tasks
 
@@ -51,6 +51,7 @@ Of course, ``mascpcr`` can also be imported and used as a Python module. See
 
 Future plans
 ------------
+
 ``mascpcr`` functions well for our current needs, so we have no immediate plans
 for further development. That being said, we are happy to help you expand / 
 adapt the code base for your specific project needs.
@@ -58,20 +59,20 @@ adapt the code base for your specific project needs.
 
 License
 -------
-::
-    Copyright (C) 2014. Ben Pruitt & Nick Conway
-    See LICENSE for full GPLv2 license.
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+Copyright (C) 2014. Ben Pruitt & Nick Conway
+See LICENSE for full GPLv2 license.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.

@@ -201,7 +201,7 @@ def buildIdxLUT(genome_fp, ref_genome_fp, genome_seq=None, ref_genome_seq=None,
                     + 'idxLUT')
         idx_lut = getCachedNumpyArray(cache_dir, cache_str)
     if idx_lut is None:
-        idx_lut = mauve.buildIndex(genome_fp, ref_genome_gb, genome_seq, 
+        idx_lut = mauve.buildIndex(genome_fp, ref_genome_fp, genome_seq, 
                                    ref_genome_seq)
         if cache_dir is not None:
             saveNumpyArrayToCache(idx_lut, cache_dir, cache_str)
