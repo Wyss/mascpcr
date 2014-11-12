@@ -54,7 +54,6 @@ def getCachedNumpyArray(cache_dir, hash_str):
 
     Uses :func:``sha256fn`` to generate a filename-friendly sha256 hash string.
 
-
     Args:
         ``cache_dir``: string filepath to the cache directory
         ``hash_str``: string to run through :func:``sha256fn`` to generate the
@@ -110,7 +109,6 @@ def getCachedBitArray(cache_dir, hash_str):
     """Load a cached bitarray using a sha256 hash of the provided string.
 
     Uses :func:``sha256fn`` to generate a filename-friendly sha256 hash string.
-
 
     Args:
         ``cache_dir``: string filepath to the cache directory
@@ -180,7 +178,7 @@ def buildIdxLUT(genome_fp, ref_genome_fp, genome_seq=None, ref_genome_seq=None,
 
     Kwargs:
         ``genome_seq``: genome sequence (if already available) -- optimization
-        ``ref_genome_seq``: reference genome sequence (if already 
+        ``ref_genome_seq``: reference genome sequence (if already
                             available) -- optimization
         ``cache_dir``: if not ``None``, the directory where a cached version
                        of the LUT will be saved
@@ -209,7 +207,7 @@ def buildIdxLUT(genome_fp, ref_genome_fp, genome_seq=None, ref_genome_seq=None,
 
 
 def buildEdgeLUT(idx_lut, cache_dir=None):
-    """Build a binary lookup table of 'edges' in the ``idx_lut``.
+    r"""Build a binary lookup table of 'edges' in the ``idx_lut``.
 
     "Edges" are points at which there is a discontinuity in the index 
     mapping. E.g., there is an "edge" at the star below:
@@ -221,6 +219,7 @@ def buildEdgeLUT(idx_lut, cache_dir=None):
     Args:
         ``idx_lut``: numpy array of index mappings between two genomes (see 
                      :func:``buildIdxLUT``)
+
     Kwargs:
         ``cache_dir``: if not ``None``, the directory where a cached version
                        of the LUT will be saved

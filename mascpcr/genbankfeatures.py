@@ -37,7 +37,6 @@ import bitarray
 def filterFeatures(sr_obj, feature_types=None, qualifier_regexs=None):
     """Filter a `SeqRecord` object's `SeqFeature` list by type and qualifiers.
 
-
     Args:
         ``sr_obj``: instantiated Biopython ``SeqRecord`` object
 
@@ -100,7 +99,6 @@ def findBorders(sr_obj, feature_types=None, qualifier_regexs=None,
     """Filter a ``SeqFeature`` list and find the border indices of its members.
 
     See :func:`filterFeatures` for explanation of filtering functionality.
-
 
     Args:
         ``sr_obj``: instantiated Biopython ``SeqRecord`` object
@@ -191,7 +189,6 @@ def findAggregateBoundaries(sr_obj, feature_types=None, qualifier_regexs=None):
     """Determine the outermost border indices of a group of filtered features.
 
     See :func:`filterFeatures` for explanation of filtering functionality.
-
 
     Args:
         ``sr_obj``: instantiated Biopython ``SeqRecord`` object

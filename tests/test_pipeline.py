@@ -13,8 +13,8 @@ class TestPipeline(unittest.TestCase):
     def test_findMascPrimers(self):
         genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut, \
             border_lut = pipeline.generateLUTs(
-                genome_gb=RECODED_GENOME_FP,
-                ref_genome_gb=REFERENCE_GENOME_FP,
+                genome_fp=RECODED_GENOME_FP,
+                ref_genome_fp=REFERENCE_GENOME_FP,
                 start_idx=1039203,        # Start index for seg 23
                 end_idx=1084477,          # End index for seg 23
                 border_feature_types=['synth_fragment'],

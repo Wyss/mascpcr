@@ -54,7 +54,7 @@ import offtarget
 #
 # This dictionary is updated with user provided parameters, so the user does
 # not need to provide an exhaustive / equivalent dictionary
-# ~~
+# ~~~ #
 
 DEFAULT_PARAMS = {
     # Acceptable primer melting temperature range. The ideal melting
@@ -107,19 +107,66 @@ MascPrimerSet = namedtuple('MascPrimerSet',
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helper functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-def generateLUTs(
-            genome_gb,          # Genome sequence genbank file
-            ref_genome_gb,      # Reference genome genbank file
-            start_idx,          # Start index for MASC PCR design
-            end_idx,            # End index (inclusive) for MASC PCR design
-            border_feature_types=None, # List of genbank feature types
-            border_qualifier_regexs=None, # List of qualifier: regex keys
-            cache_luts=True,    # Whether or not to cache the LUTs
-            cache_dir=CACHE_DIR):   # Directory in which to cache LUTs
+def generateLUTs(genome_fp, ref_genome_fp, start_idx, end_idx, 
+                 border_feature_types=None, border_qualifier_regexs=None, 
+                 cache_luts=True, cache_dir=CACHE_DIR):
+    """Generate the LUT datastructures necessary for the mascpcr pipeline
+
+    Builds the index, edge, mismatch, and (optionally) feature border lookup 
+    tables. All LUTs are of equal length to the recoded / modified genome.
+
+        *index (idx_lut)*: LUT mapping recoded / modified genome indices to
+                           wildtype genome indices. The numpy array is indexed
+                           by recoded genome index and the value at each 
+                           position is the corresponding wildtype genome index.
+                           If the value at a given position is -1, then that
+                           base in the recoded genome did not map to the 
+                           wildtype genome.
+
+        *edge (edge_lut)*: LUT of 'edges' in the index mapping. Edges are 
+                           discontinuities in the mapping where a continuous
+                           region of recoded -> wildtype mapping is 
+                           interrupted.
+
+        *mismatch (mismatch_lut)*: LUT of localized base mismatches used to 
+                                   identify good points of discrimination 
+                                   between the recoded and wildtype genomes.
+
+        *border (border_lut)*: LUT of the border indices of features matching
+                               user-profided type and qualifier specifications.
+                               Used to prioritize primer sets that span such
+                               borders as a means of validating the success
+                               of an assembly.
+
+    Args:
+        ``genome_fp``: filepath to recoded / modified genome genbank file
+        ``ref_genome_fp``: filepath to wt / reference genome genbank file
+        ``start_idx``: start index of recoded genome (int) for primer design
+        ``end_idx``: end index of recoded genome (int) for primer design
+
+    Kwargs:
+        ``border_feature_types``: list of feature types (e.g., ['gene', 'CDS'])
+        ``border_qualifier_regexs``: dict of <field name>: <value regex> 
+                                     entries
+        ``cache_luts``: whether or not to cache the LUTs on disk for future 
+                        runs
+        ``cache_dir``: the directory in which to cache the LUTs (defaults to
+                       the ``cache/`` directory inside of the module directory)
+
+    Returns:
+        Genome sequence (str), reference genome sequence (str), index_lut 
+        (numpy array), edge_lut (binary bitarray), mismatch_lut 
+        (binary bitarray), (optionally) border_lut (binary bitarray) -- None if
+        not generated.
+
+    Raises:
+        ``OSError``
+
+    """
 
     print('Reading in genome and reference genome genbank files...')
-    genome_rec = SeqIO.read(genome_gb, 'gb')
-    ref_genome_rec = SeqIO.read(ref_genome_gb, 'gb')
+    genome_rec = SeqIO.read(genome_fp, 'gb')
+    ref_genome_rec = SeqIO.read(ref_genome_fp, 'gb')
     genome_str = str(genome_rec.seq).encode('utf-8')
     ref_genome_str = str(ref_genome_rec.seq).encode('utf-8')
 
@@ -135,7 +182,7 @@ def generateLUTs(
         cache_dir = None
 
     print('Building index lookup table with Mauve Aligner...')
-    idx_lut = indexing.buildIdxLUT(genome_gb, ref_genome_gb, genome_str,
+    idx_lut = indexing.buildIdxLUT(genome_fp, ref_genome_fp, genome_str,
                                    ref_genome_str, cache_dir=cache_dir)
 
     print('Building edge lookup table...')
@@ -161,7 +208,6 @@ def generateLUTs(
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~ Main pipeline entry point ~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-# Main entry point for MASC PCR primer design
 def findMascPrimers(
             idx_lut,            # LUT mapping genome index to ref_genome index
             genome_str,         # Genome sequence string
@@ -172,6 +218,37 @@ def findMascPrimers(
             mismatch_lut,       # Pre-populated mismatch LUT
             border_lut=None,    # Array of feature border indices to overlap
             params=None):       # General design params (see DEFAULT_PARAMS)
+    """Find a set of MASC PCR primer sets for the given genomic region
+
+    This is the main entry point for the ``mascpcr`` design pipeline. It 
+    requires the the underlying LUTs have been prebuilt, and performs all 
+    primer finding and output generating tasks as specified in the user-
+    provided parameters (``params``).
+
+    Args:
+        ``idx_lut``: numpy array of index mappings between two genomes (see 
+                     :func:``buildIdxLUT``)
+        ``genome_str``: recoded/modified genome sequence (string)
+        ``ref_genome_str``: reference genome sequence (string)
+        ``start_idx``: start index of recoded genome (int) for primer design
+        ``end_idx``: end index of recoded genome (int) for primer design
+        ``edge_lut``: bitarray LUT of discontinuities in the index mapping 
+        ``mismatch_lut``: bitarray LUT of localized mismatches in the index 
+                          mapping 
+
+    Kwargs:
+        ``border_lut``: bitarray LUT of user-specified feature border indices 
+        ``params``: user-specified pipeline parameters to override the defaults
+                    (see ``DEFAULT_PARAMS``)
+
+    Returns:
+        ``None`` (prints status updates to stdout and writes output to files
+        as specified in the ``params``)
+
+    Raises:
+        ``OSError``
+
+    """
 
     # ~~~~~~~~~~ Reconcile default params with user-provided params ~~~~~~~~~ #
     _params = copy.deepcopy(DEFAULT_PARAMS)
@@ -282,11 +359,11 @@ def findMascPrimers(
                 d_tm, w_tm, c_tm = cached_tms
             else:
                 d_tm = offtarget.checkOffTarget(d_primer.seq, genome_str,
-                                                 d_primer.idx)
+                                                 d_primer.idx, params)
                 w_tm = offtarget.checkOffTarget(w_primer.seq, ref_genome_str,
-                                                 w_primer.idx)
+                                                 w_primer.idx, params)
                 c_tm = offtarget.checkOffTarget(c_primer.seq, genome_str,
-                                                 c_primer.idx)
+                                                 c_primer.idx, params)
                 offtarget_tm_cache[bin_idx][primer_pair_idx] = (d_tm, w_tm,
                                                                 c_tm)
             if max(d_tm, w_tm, c_tm) > tm_max:

@@ -19,7 +19,7 @@ mascpcr.primercandidate
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Methods for finding discriminatory and common primer candidates given
-a target index and the necessary genome information and LUTs.
+a target index and the necessary genome sequences / LUTs.
 
 """
 
@@ -56,19 +56,18 @@ CandidatePrimer = namedtuple('CandidatePrimer',
          ])                     #   power, homo/hairpin tm, etc.
 
 
-"""
-Primer indexing information
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Primer indexing information
 
-The primer index provided in the CandidatePrimer tuple is the 5'-most index
-of the primer footprint on the fwd (+) strand of the genome / target:
+# The primer index provided in the CandidatePrimer tuple is the 5'-most index
+# of the primer footprint on the fwd (+) strand of the genome / target:
 
-Fwd Primer Idx         |
-Fwd Primer             >>>>>>>>>>>>>>>>>>
-Genome          ATTACCGATACCAATTGACCAGTTGGGACCCAGTTGACCAGTTGGACCCAGTTAGC
-Rev Primer                                       <<<<<<<<<<<<<<<<<<<
-Rev Primer Idx                                   |
-
-"""
+# Fwd Primer Idx         |
+# Fwd Primer             >>>>>>>>>>>>>>>>>>
+# Genome          ATTACCGATACCAATTGACCAGTTGGGACCCAGTTGACCAGTTGGACCCAGTTAGC
+# Rev Primer                                       <<<<<<<<<<<<<<<<<<<
+# Rev Primer Idx                                   |
+# ~~~ #
 
 
 def findDiscriminatoryPrimer(idx, strand, idx_lut, genome, ref_genome,

@@ -58,8 +58,8 @@ RECODED_GB_DATA = SeqIO.read(RECODED_GENOME_FP, 'gb')
 REFERENCE_GB_DATA = SeqIO.read(REFERENCE_GENOME_FP, 'gb')
 
 start_idx, end_idx = mascpcr.genbankfeatures.findAggregateBoundaries(
-    # `gb_data` expects a SeqRecord object
-    gb_data=RECODED_GB_DATA,
+    # `sr_obj` expects a SeqRecord object
+    sr_obj=RECODED_GB_DATA,
     # These are the features types that we want to look for
     feature_types=['synth_fragment'],
     # We will look up the qualifier 'label' in each Feature object and check
@@ -85,8 +85,8 @@ assert end_idx == 1084477
 #                of designing primers that span assembly junctions
 genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut, \
     border_lut = mascpcr.generateLUTs(
-        genome_gb=RECODED_GENOME_FP,
-        ref_genome_gb=REFERENCE_GENOME_FP,
+        genome_fp=RECODED_GENOME_FP,
+        ref_genome_fp=REFERENCE_GENOME_FP,
         start_idx=start_idx,
         end_idx=end_idx,          
         # We want our primers to span "synth_fragment" junctions, if possible 
