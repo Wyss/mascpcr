@@ -334,6 +334,32 @@ def findMascPrimers(
 
     print('Finding optimal set of MASC primers...')
 
+    # Get target indices / seq area for local mispriming checks
+    target_area_offset = min(1000, (len(genome_str) - 
+                            (end_idx - start_idx) / 2))
+    target_start_idx = start_idx - target_area_offset
+    target_end_idx = end_idx + target_area_offset
+    ref_target_start_idx = idx_lut[target_start_idx]
+    ref_target_end_idx = idx_lut[target_end_idx]
+
+    target_area = genome_str[max(0, target_start_idx): 
+                             min(target_end_idx, len(genome_str))]
+
+    if target_start_idx < 0:
+        target_area = genome_str[target_start_idx:] + target_area 
+    if target_end_idx > len(genome_str):
+        target_area += genome_str[target_end_idx - len(genome_str):]
+        
+    ref_target_area = ref_genome_str[max(0, idx_lut[start_idx]-
+                                     target_area_offset): min(idx_lut[end_idx], 
+                                     len(genome_str))]
+
+    if ref_target_start_idx < 0:
+        ref_target_area = genome_str[ref_target_start_idx:] + target_area 
+    if ref_target_end_idx > len(genome_str):
+        ref_target_area += genome_str[ref_target_end_idx - len(genome_str):]
+
+
     def checkSetForHeterodimers(set_of_primer_sets, tm_max=40):
         all_primers = []
         for bin_idx, primer_pair_idx in enumerate(set_of_primer_sets):
@@ -358,12 +384,16 @@ def findMascPrimers(
             if cached_tms is not None:
                 d_tm, w_tm, c_tm = cached_tms
             else:
-                d_tm = offtarget.checkOffTarget(d_primer.seq, genome_str,
-                                                 d_primer.idx, params)
-                w_tm = offtarget.checkOffTarget(w_primer.seq, ref_genome_str,
-                                                 w_primer.idx, params)
-                c_tm = offtarget.checkOffTarget(c_primer.seq, genome_str,
-                                                 c_primer.idx, params)
+                d_tm = offtarget.checkOffTarget(d_primer.seq, target_area,
+                                                (d_primer.idx - start_idx +
+                                                target_area_offset),
+                                                params)
+                w_tm = offtarget.checkOffTarget(w_primer.seq, ref_target_area,
+                                                (w_primer.idx - start_idx +
+                                                target_area_offset), params)
+                c_tm = offtarget.checkOffTarget(c_primer.seq, target_area,
+                                                (c_primer.idx - start_idx +
+                                                target_area_offset), params)
                 offtarget_tm_cache[bin_idx][primer_pair_idx] = (d_tm, w_tm,
                                                                 c_tm)
             if max(d_tm, w_tm, c_tm) > tm_max:
@@ -458,7 +488,8 @@ def findMascPrimers(
             heterodimer_conflicts[bin1_idx][ps1_idx].append((bin2_idx, ps2_idx))
             heterodimer_conflicts[bin2_idx][ps1_idx].append((bin1_idx, ps1_idx))
             continue
-        if not checkSetForOffTarget(set_of_primer_sets, 40):
+        if not checkSetForOffTarget(set_of_primer_sets, 
+                                    params['spurious_tm_clip']):
             print('-> Failed mispriming check')
             continue
         else:
