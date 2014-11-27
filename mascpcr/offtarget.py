@@ -92,7 +92,6 @@ def checkOffTarget(primer_str, genome_str, primer_idx, params,
         fwd_hotspots, = np.where((fwd_hamming_distances < fwd_hd_thresh))
         highest_tm_idx = None
         highest_tm = -100
-
         for idx in fwd_hotspots:
             tm = primer3.calcHeterodimerTm(
                 primer_str, genome_str[-(idx+primer_length):-idx],
@@ -100,9 +99,6 @@ def checkOffTarget(primer_str, genome_str, primer_idx, params,
             if tm > highest_tm:
                 highest_tm_idx = idx
                 highest_tm = tm
-        
-        sys.stdout.flush()
-
         strand_results.put((highest_tm, highest_tm_idx, 1))
 
     def _revStrand():
@@ -116,7 +112,6 @@ def checkOffTarget(primer_str, genome_str, primer_idx, params,
 
         highest_tm_idx = None
         highest_tm = -100
-
         for idx in rev_hotspots:
             tm = primer3.calcHeterodimerTm(
                 primer_str, genome_rc_str[idx:idx+primer_length],
@@ -124,7 +119,6 @@ def checkOffTarget(primer_str, genome_str, primer_idx, params,
             if tm > highest_tm:
                 highest_tm_idx = idx
                 highest_tm = tm
-
         strand_results.put((highest_tm, highest_tm_idx, 0))
 
     fwd_proc = mp.Process(target=_fwdStrand)

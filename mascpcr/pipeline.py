@@ -256,13 +256,18 @@ def findMascPrimers(
     params = _params
     thermo_params = params.get('thermo_params')
 
+    # Coerce off-by-one index issues
+    if end_idx == len(genome_str):
+        end_idx = len(genome_str) - 1
+
     # ~~~~~~~ Generate potential primers for both fwd and rev strands ~~~~~~~ #
     fwd_strand_primer_candidates = []
     rev_strand_primer_candidates = []
     fwd_candidates_found = 0
     rev_candidates_found = 0
     candidates_checked = 0
-
+    print('Finding MASC PCR primers for target with output basename: ', 
+          params['output_basename'])
     mismatch_count = mismatch_lut.count(1)
     print("Total Mismatches: {}, Percent Mismatches: {:.2f}".format(
           mismatch_count, mismatch_count/float(len(mismatch_lut))*100))
@@ -339,8 +344,6 @@ def findMascPrimers(
                             (end_idx - start_idx) / 2))
     target_start_idx = start_idx - target_area_offset
     target_end_idx = end_idx + target_area_offset
-    ref_target_start_idx = idx_lut[target_start_idx]
-    ref_target_end_idx = idx_lut[target_end_idx]
 
     target_area = genome_str[max(0, target_start_idx): 
                              min(target_end_idx, len(genome_str))]
@@ -348,17 +351,40 @@ def findMascPrimers(
     if target_start_idx < 0:
         target_area = genome_str[target_start_idx:] + target_area 
     if target_end_idx > len(genome_str):
-        target_area += genome_str[target_end_idx - len(genome_str):]
-        
-    ref_target_area = ref_genome_str[max(0, idx_lut[start_idx]-
-                                     target_area_offset): min(idx_lut[end_idx], 
-                                     len(genome_str))]
+        target_area += genome_str[:target_end_idx - len(genome_str)]
+
+    ref_target_start_idx = idx_lut[start_idx]
+    ref_target_end_idx = idx_lut[end_idx]
+    ref_start_offset = 0
+    ref_end_offset = 0
+
+    if ref_target_start_idx == -1:
+        ref_start_offset = 1
+        while (ref_target_start_idx == -1 and start_idx - 
+                ref_start_offset > 0):
+            ref_target_start_idx = idx_lut[start_idx - ref_start_offset]
+            ref_start_offset += 1
+    if ref_target_end_idx == -1:
+        ref_end_offset = 1
+        while (ref_target_end_idx == -1 and 
+               target_end_idx + ref_end_offset < len(genome_str)):
+            ref_target_end_idx = idx_lut[end_idx + ref_end_offset]
+            ref_end_offset += 1
+
+    ref_target_start_idx -= target_area_offset
+    ref_target_end_idx += target_area_offset
+
+    ref_target_area = ref_genome_str[max(0, ref_target_start_idx): 
+                                     min(ref_target_end_idx, 
+                                         len(ref_genome_str))]  
 
     if ref_target_start_idx < 0:
-        ref_target_area = genome_str[ref_target_start_idx:] + target_area 
-    if ref_target_end_idx > len(genome_str):
-        ref_target_area += genome_str[ref_target_end_idx - len(genome_str):]
-
+        ref_target_area = ref_genome_str[ref_target_start_idx:] + \
+                          ref_target_area 
+    if ref_target_end_idx > len(ref_genome_str):
+        ref_target_area += ref_genome_str[:ref_target_end_idx - \
+                           len(ref_genome_str)]
+         
 
     def checkSetForHeterodimers(set_of_primer_sets, tm_max=40):
         all_primers = []
@@ -389,8 +415,10 @@ def findMascPrimers(
                                                 target_area_offset),
                                                 params)
                 w_tm = offtarget.checkOffTarget(w_primer.seq, ref_target_area,
-                                                (w_primer.idx - start_idx +
-                                                target_area_offset), params)
+                                                (w_primer.idx - 
+                                                idx_lut[start_idx] +
+                                                target_area_offset - 
+                                                ref_start_offset), params)
                 c_tm = offtarget.checkOffTarget(c_primer.seq, target_area,
                                                 (c_primer.idx - start_idx +
                                                 target_area_offset), params)
@@ -458,13 +486,13 @@ def findMascPrimers(
             print('->Heterodimer conflict between {}.{}, {}.{}'.format(bin1_idx,
                     ps1_idx, bin2_idx, ps2_idx))
             try:
-                bin1_delta = (combined_bins[bin1_idx][ps1_idx + 1][0] -
-                              combined_bins[bin1_idx][ps1_idx][0])
+                bin1_delta = (combined_bins[bin1_idx][ps1_idx][0] -
+                              combined_bins[bin1_idx][ps1_idx + 1][0])
             except IndexError:
                 bin1_delta = -1
             try:
-                bin2_delta = (combined_bins[bin2_idx][ps2_idx + 1][0] -
-                              combined_bins[bin2_idx][ps2_idx][0])
+                bin2_delta = (combined_bins[bin2_idx][ps2_idx][0] -
+                              combined_bins[bin2_idx][ps2_idx + 1][0])
             except IndexError:
                 bin2_delta = -1
             if bin1_delta == -1:
@@ -475,16 +503,20 @@ def findMascPrimers(
                     sys.exit(1)
                 else:
                     set_of_primer_sets[bin2_idx] += 1
-                    set_of_primer_sets[bin1_idx] = 0
+                    if bin1_idx != bin2_idx:
+                        set_of_primer_sets[bin1_idx] = 0
             elif bin2_delta == -1:
                 set_of_primer_sets[bin1_idx] += 1
-                set_of_primer_sets[bin2_idx] = 0
+                if bin1_idx != bin2_idx:
+                    set_of_primer_sets[bin2_idx] = 0
             elif bin1_delta < bin2_delta:
                 set_of_primer_sets[bin1_idx] += 1
-                set_of_primer_sets[bin2_idx] = 0
+                if bin1_idx != bin2_idx:
+                    set_of_primer_sets[bin2_idx] = 0
             else:
                 set_of_primer_sets[bin2_idx] += 1
-                set_of_primer_sets[bin1_idx] = 0
+                if bin1_idx != bin2_idx:
+                    set_of_primer_sets[bin1_idx] = 0
             heterodimer_conflicts[bin1_idx][ps1_idx].append((bin2_idx, ps2_idx))
             heterodimer_conflicts[bin2_idx][ps1_idx].append((bin1_idx, ps1_idx))
             continue
