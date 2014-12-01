@@ -38,11 +38,13 @@ def filterFeatures(sr_obj, feature_types=None, qualifier_regexs=None):
     """Filter a `SeqRecord` object's `SeqFeature` list by type and qualifiers.
 
     Args:
-        ``sr_obj``: instantiated Biopython ``SeqRecord`` object
+        sr_obj (``SeqRecord``)              : instantiated Biopython 
+                                              ``SeqRecord`` object
 
-    Kwargs:
-        ``feature_types``: list of feature types (e.g., ['gene', 'CDS'])
-        ``qualifier_regexs``: dict of <field name>: <value regex> entries
+        feature_types (list, optional)      : list of feature types 
+                                              (e.g., ['gene', 'CDS'])
+        qualifier_regexs (dict, optional)   : dict of <field name>: 
+                                              <value regex> entries
 
     Returns:
         Filtered list of `SeqRecord` objects
@@ -101,13 +103,15 @@ def findBorders(sr_obj, feature_types=None, qualifier_regexs=None,
     See :func:`filterFeatures` for explanation of filtering functionality.
 
     Args:
-        ``sr_obj``: instantiated Biopython ``SeqRecord`` object
+        sr_obj (``SeqRecord``): instantiated Biopython ``SeqRecord`` object
 
-    Kwargs:
-        ``feature_types``: list of feature types (e.g., ['gene', 'CDS'])
-        ``qualifier_regexs``: dict of <field name>: <value regex> entries
-        ``strand_specific``: boolean determining whether separate lists 
-                             should be returned for each strand (fwd / rev)
+        feature_types (list, optional)      : list of feature types (e.g., 
+                                              ['gene', 'CDS'])
+        qualifier_regexs (list, optional)   : dict of <field name>: 
+                                              <value regex> entries
+        strand_specific (list, optional)    : boolean determining whether 
+                                              separate lists should be returned 
+                                              for each strand (fwd / rev)
     Returns:
         List(s) of (<idx>, <1 if rising edge, 0 if falling edge>) tuples.
 
@@ -142,13 +146,15 @@ def buildBorderLUT(sr_obj, feature_types=None, qualifier_regexs=None,
     See :func:`filterFeatures` for explanation of filtering functionality.
 
     Args:
-        ``sr_obj``: instantiated Biopython ``SeqRecord`` object
+        sr_obj (``SeqRecord``): instantiated Biopython ``SeqRecord`` object
 
-    Kwargs:
-        ``feature_types``: list of feature types (e.g., ['gene', 'CDS'])
-        ``qualifier_regexs``: dict of <field name>: <value regex> entries
-        ``strand_specific``: boolean determining whether separate lists 
-                             should be returned for each strand (fwd / rev)
+        feature_types (list, optional)      : list of feature types (e.g., 
+                                              ['gene', 'CDS'])
+        qualifier_regexs (list, optional)   : dict of <field name>: 
+                                              <value regex> entries
+        strand_specific (list, optional)    : boolean determining whether 
+                                              separate lists should be returned 
+                                              for each strand (fwd / rev)
     Returns:
         Binary bitarray(s) (``bitarray.bitarray``) indicating the indices of
         feature borders (border indices have a value of 1). Strand-specific
@@ -191,11 +197,12 @@ def findAggregateBoundaries(sr_obj, feature_types=None, qualifier_regexs=None):
     See :func:`filterFeatures` for explanation of filtering functionality.
 
     Args:
-        ``sr_obj``: instantiated Biopython ``SeqRecord`` object
+        sr_obj (``SeqRecord``): instantiated Biopython ``SeqRecord`` object
 
-    Kwargs:
-        ``feature_types``: list of feature types (e.g., ['gene', 'CDS'])
-        ``qualifier_regexs``: dict of <field name>: <value regex> entries
+        feature_types (list, optional)      : list of feature types (e.g., 
+                                              ['gene', 'CDS'])
+        qualifier_regexs (list, optional)   : dict of <field name>: 
+                                              <value regex> entries
 
     Returns:
         Tuple of (<min index>, <max index>) of the filtered features

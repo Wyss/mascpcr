@@ -70,9 +70,39 @@ CandidatePrimer = namedtuple('CandidatePrimer',
 # ~~~ #
 
 
-def findDiscriminatoryPrimer(idx, strand, idx_lut, genome, ref_genome,
-                             edges_lut, mismatches_lut, params):
+def findDiscriminatoryPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
+                             edge_lut, mismatches_lut, params):
+    """Find a "discriminatory" primer at the given genomic index.
 
+    Determines whether or not there is a viable discriminatory primer at the
+    provided genomic index, given all of the necessary lookup tables and 
+    sequence information. 
+
+    This examines the entire putative primer region (within bp range defined by
+    params['size_range'], on the designated strand) for viable primers and 
+    selects the primer that has the best score, which is calculated based on a
+    number of factors: proximity to ideal Tm, spurious secondary structure 
+    melting temperatures, and the number of mismatches between discriminatory 
+    primary and wildtype primer.
+
+    Assuming at least one discriminatory primer passes the minimum cutoffs 
+    (i.e., has at least params['min_num_mismatches'], a tm within 
+    params['tm_range'] and no homodimer or hairpin tm greater than 
+    params['spurious_tm_clip']), the best scoring discriminatory primer and 
+    respective wildtype primer CandidatePrimer namedtuples will be returned.
+    Note that the wildtype primer must pass the same stringency of cutoffs 
+    as the discriminatory primer. 
+
+    Args:
+        idx (int): index at which the 3' end of the primer must bind
+        strand (int): starnd on which to examine primers (1 for fwd, -1 for rev)
+        genome_str (str): recoded/modified genome sequence 
+        ref_genome_str (str): reference genome sequence
+        edge_lut (``bitarray.bitarray``): 
+        mismatch
+
+
+    """
     # Initial param reconciliation
     tm_range = params.get('tm_range', (60, 65))
     spurious_tm_clip = params.get('spurious_tm_clip', 40)
@@ -91,7 +121,7 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome, ref_genome,
                                                   tm_range[1]))/(tm_range[1] -
                                                   tm_range[0])
 
-    if idx - size_range[1] < 0 or idx + size_range[1] > (len(genome)-1):
+    if idx - size_range[1] < 0 or idx + size_range[1] > (len(genome_str)-1):
         return None, None
 
     delta = size_range[0] - 1
@@ -102,13 +132,13 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome, ref_genome,
     # which we examine from the 3' end to the 5' end
     if strand == 1:
         root_idx  = idx + 1  # + 1 for exclusive upper-bound idxing
-        candidate_seq_area = genome[root_idx - delta_lim:root_idx]
-        wt_candidate_seq_area = ref_genome[idx_lut[root_idx] -
+        candidate_seq_area = genome_str[root_idx - delta_lim:root_idx]
+        wt_candidate_seq_area = ref_genome_str[idx_lut[root_idx] -
                                        delta_lim:idx_lut[root_idx]]
     else:
         root_idx = idx
-        candidate_seq_area = rc(genome[root_idx:root_idx + delta_lim])
-        wt_candidate_seq_area = rc(ref_genome[idx_lut[root_idx]:
+        candidate_seq_area = rc(genome_str[root_idx:root_idx + delta_lim])
+        wt_candidate_seq_area = rc(ref_genome_str[idx_lut[root_idx]:
                                               idx_lut[root_idx + delta_lim]])
 
     # Check the 3' end for high end stability
@@ -152,7 +182,7 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome, ref_genome,
         for i in range(0, delta):
             i = i * strand
             # If primer now contains an edge, scrap it and stop looking
-            if edges_lut[idx - i * strand] == 1:
+            if edge_lut[idx - i * strand] == 1:
                 break
             if mismatches_lut[idx - i * strand] == 1:
                 local_mismatch_idxs[i] = 1
@@ -199,8 +229,8 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome, ref_genome,
     return best_primer_pair
 
 
-def findCommonPrimer(idx, strand, idx_lut, genome, ref_genome,
-                     edges_lut, mismatches_lut, params):
+def findCommonPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
+                     edge_lut, mismatches_lut, params):
 
     # Initial param reconciliation
     tm_range = params.get('tm_range', (60, 65))
@@ -215,7 +245,7 @@ def findCommonPrimer(idx, strand, idx_lut, genome, ref_genome,
                                                   tm_range[1]))/(tm_range[1] -
                                                   tm_range[0])
 
-    if idx - size_range[1] < 0 or idx + size_range[1] > (len(genome)-1):
+    if idx - size_range[1] < 0 or idx + size_range[1] > (len(genome_str)-1):
         return None
 
     delta = size_range[0] - 1
@@ -226,10 +256,10 @@ def findCommonPrimer(idx, strand, idx_lut, genome, ref_genome,
     # which we examine from the 3' end to the 5' end
     if strand == 1:
         root_idx  = idx + 1  # + 1 for exclusive upper-bound idxing
-        candidate_seq_area = genome[root_idx - delta_lim:root_idx]
+        candidate_seq_area = genome_str[root_idx - delta_lim:root_idx]
     else:
         root_idx = idx
-        candidate_seq_area = rc(genome[root_idx:root_idx + delta_lim])
+        candidate_seq_area = rc(genome_str[root_idx:root_idx + delta_lim])
 
     # Check the 3' end for high end stability
     end3p_check = candidate_seq_area[-5:]

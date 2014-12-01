@@ -55,9 +55,9 @@ def getCachedNumpyArray(cache_dir, hash_str):
     Uses :func:``sha256fn`` to generate a filename-friendly sha256 hash string.
 
     Args:
-        ``cache_dir``: string filepath to the cache directory
-        ``hash_str``: string to run through :func:``sha256fn`` to generate the
-                      filename hash
+        cache_dir (str)     : string filepath to the cache directory
+        hash_str (str)      : string to run through :func:``sha256fn`` to 
+                              generate the filename hash
 
     Returns:
         Numpy array object if the cached array is successfully loaded, 
@@ -86,10 +86,10 @@ def saveNumpyArrayToCache(np_arr, cache_dir, hash_str):
     not.
 
     Args:
-        ``np_arr``: numpy array to save to disk
-        ``cache_dir``: string filepath to the cache directory
-        ``hash_str``: string to run through :func:``sha256fn`` to generate the
-                      filename hash
+        np_arr (``numpy.ndarray``)  : numpy array to save to disk
+        cache_dir (str)             : string filepath to the cache directory
+        hash_str (str)              : string to run through :func:``sha256fn`` 
+                                      to generate the filename hash
 
     Returns:
         ``None``
@@ -111,8 +111,8 @@ def getCachedBitArray(cache_dir, hash_str):
     Uses :func:``sha256fn`` to generate a filename-friendly sha256 hash string.
 
     Args:
-        ``cache_dir``: string filepath to the cache directory
-        ``hash_str``: string to run through :func:``sha256fn`` to generate the
+        cache_dir   : string filepath to the cache directory
+        hash_str    : string to run through :func:``sha256fn`` to generate the
                       filename hash
 
     Returns:
@@ -145,10 +145,10 @@ def saveBitArrayToCache(bt_arr, cache_dir, hash_str):
     not.
 
     Args:
-        ``np_arr``: numpy array to save to disk
-        ``cache_dir``: string filepath to the cache directory
-        ``hash_str``: string to run through :func:``sha256fn`` to generate the
-                      filename hash
+        np_arr (str)        : numpy array to save to disk
+        cache_dir (str)     : string filepath to the cache directory
+        hash_str (str)      : string to run through :func:``sha256fn`` to 
+                              generate the filename hash
 
     Returns:
         ``None``
@@ -165,7 +165,7 @@ def saveBitArrayToCache(bt_arr, cache_dir, hash_str):
         bt_arr.tofile(cached_fd)  
 
 
-def buildIdxLUT(genome_fp, ref_genome_fp, genome_seq=None, ref_genome_seq=None,
+def buildIdxLUT(genome_fp, ref_genome_fp, genome_str=None, ref_genome_str=None,
                 cache_dir=None):
     """Build a LUT that maps the indices of `genome` to `ref_genome`.
     
@@ -173,15 +173,17 @@ def buildIdxLUT(genome_fp, ref_genome_fp, genome_seq=None, ref_genome_seq=None,
     generate the LUT and optionally handles caching of the LUT. 
 
     Args:
-        ``genome_fp``: filepath to the recoded/modified genome
-        ``ref_genome_fp``: filepath to the reference genome
+        genome_fp (str)                 : filepath to the recoded/modified 
+                                          genome
+        ref_genome_fp (str)             : filepath to the reference genome
 
-    Kwargs:
-        ``genome_seq``: genome sequence (if already available) -- optimization
-        ``ref_genome_seq``: reference genome sequence (if already
-                            available) -- optimization
-        ``cache_dir``: if not ``None``, the directory where a cached version
-                       of the LUT will be saved
+        genome_str (str, optional)      : genome sequence (if already 
+                                          available) -- optimization
+        ref_genome_str (str, optional)  : reference genome sequence (if already
+                                          available) -- optimization
+        cache_dir (str, optional)       : if not ``None``, the directory where 
+                                          a cached version of the LUT will be 
+                                          saved
     Returns:
         Numpy array mapping indices in the recoded/modified genome sequence
         to indicies in the reference genome sequence. All indices greater than
@@ -199,8 +201,8 @@ def buildIdxLUT(genome_fp, ref_genome_fp, genome_seq=None, ref_genome_seq=None,
                     + 'idxLUT')
         idx_lut = getCachedNumpyArray(cache_dir, cache_str)
     if idx_lut is None:
-        idx_lut = mauve.buildIndex(genome_fp, ref_genome_fp, genome_seq, 
-                                   ref_genome_seq)
+        idx_lut = mauve.buildIndex(genome_fp, ref_genome_fp, genome_str, 
+                                   ref_genome_str)
         if cache_dir is not None:
             saveNumpyArrayToCache(idx_lut, cache_dir, cache_str)
     return idx_lut
@@ -217,12 +219,11 @@ def buildEdgeLUT(idx_lut, cache_dir=None):
                                             *
 
     Args:
-        ``idx_lut``: numpy array of index mappings between two genomes (see 
-                     :func:``buildIdxLUT``)
+        idx_lut (``numpy.ndarray``) : numpy array of index mappings between two 
+                                      genomes (see :func:``buildIdxLUT``)
 
-    Kwargs:
-        ``cache_dir``: if not ``None``, the directory where a cached version
-                       of the LUT will be saved
+        cache_dir (str, optional)   : if not ``None``, the directory where a 
+                                      cached version of the LUT will be saved
 
     Returns:
         Bitarray of equal length to ``idx_lut`` in which values of 1 represent
@@ -248,14 +249,13 @@ def buildMismatchLUT(idx_lut, genome_str, ref_genome_str, cache_dir=None):
     identifying good points of sequence discrimination.
 
     Args:
-        ``idx_lut``: numpy array of index mappings between two genomes (see 
-                     :func:``buildIdxLUT``)
-        ``genome_str``: recoded/modified genome sequence (string)
-        ``ref_genome_str``: reference genome sequence (string)
+        idx_lut (``numpy.ndarray``) : numpy array of index mappings between 
+                                      two genomes (see :func:``buildIdxLUT``)
+        genome_str (str)            : recoded/modified genome sequence
+        ref_genome_str (str)        : reference genome sequence 
 
-    Kwargs:
-        ``cache_dir``: if not ``None``, the directory where a cached version
-                       of the LUT will be saved
+        cache_dir (str, optional)   : if not ``None``, the directory where a 
+                                      cached version of the LUT will be saved
 
     Returns:
         Bitarray of equal length to ``idx_lut`` in which values of 1 represent

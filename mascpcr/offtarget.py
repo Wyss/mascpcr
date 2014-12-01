@@ -35,6 +35,7 @@ from libnano import seqstr
 
 import sys
 
+
 def checkOffTarget(primer_str, genome_str, primer_idx, params,
                    hamming_percentile=0.05, genome_rc_str=None):
     """Return the tm, idx, and strand of the strongest off-target hybridization
@@ -53,21 +54,23 @@ def checkOffTarget(primer_str, genome_str, primer_idx, params,
     in the bottom 0.05 percent.
 
     Args:
-        ``primer_str``: primer sequence string
-        ``genome_str``: genome sequence string
-        ``primer_idx``: 5'-most index of a primer sequence on the forward 
-                        strand, used to mask the binding region
-        ``params``: parameters dictionary used throughout the pipeline (see
-                    :module:``mascpcr.pipeline``)
+        primer_str (str)            : primer sequence string
+        genome_str (str)            : genome sequence string
+        primer_idx (int)            : 5'-most index of a primer sequence on the 
+                                      forward strand, used to mask the binding 
+                                      region
+        params (dict)               : parameters dictionary used throughout the 
+                                      pipeline (see 
+                                      :module:``mascpcr.pipeline``)
 
-    Kwargs:
-        ``hamming_percentile``: Hamming distance percentile (0-100, float) 
-                                below which regions surrounding the respective 
-                                indices will be subject to interrogation by
-                                thermodynamic alignment 
-        ``genome_rc_str``: reverse complement of the genome (optimization to
-                           minimize the number of times this operation must
-                           be performed / number of memory copies)
+        hamming_percentile (float)  : Hamming distance percentile (0-100) 
+                                      below which regions surrounding the 
+                                      respective indices will be subject to 
+                                      interrogation by thermodynamic alignment
+        genome_rc_str (str)         : reverse complement of the genome 
+                                      (optimization to minimize the number of 
+                                      times this operation must be performed / 
+                                      number of memory copies)
 
     Returns:
         The tm (deg. C), index, and strand of the strongest off-target 
@@ -153,21 +156,24 @@ def checkOffTarget3p(primer_str, genome_str, primer_idx, params,
     in the bottom 0.05 percent.
 
     Args:
-        ``primer_str``: primer sequence string
-        ``genome_str``: genome sequence string
-        ``primer_idx``: 5'-most index of a primer sequence on the forward 
-                        strand, used to mask the binding region
-        ``params``: parameters dictionary used throughout the pipeline (see
-                    :module:``mascpcr.pipeline``)
+        primer_str (str)                : primer sequence string
+        genome_str (str)                : genome sequence string
+        primer_idx (int)                : 5'-most index of a primer sequence on 
+                                          the forward strand, used to mask the 
+                                          binding region
+        params (dict)                   : parameters dictionary used throughout 
+                                          the pipeline (see 
+                                          :module:``mascpcr.pipeline``)
 
-    Kwargs:
-        ``hamming_percentile``: Hamming distance percentile (0-100, float) 
-                                below which regions surrounding the respective 
-                                indices will be subject to interrogation by
-                                thermodynamic alignment 
-        ``genome_rc_str``: reverse complement of the genome (optimization to
-                           minimize the number of times this operation must
-                           be performed / number of memory copies)
+        hamming_percentile (float, optional)    : Hamming distance percentile 
+                                         (0-100) below which regions 
+                                         surrounding the respective indices 
+                                         will be subject to interrogation by 
+                                         thermodynamic alignment
+        genome_rc_str (str, optional)   : reverse complement of the genome 
+                                          (optimization to minimize the number 
+                                          of times this operation must be 
+                                          performed / number of memory copies)
 
     Returns:
         The tm (deg. C), index, and strand of the strongest off-target 

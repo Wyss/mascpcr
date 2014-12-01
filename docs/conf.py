@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # mascpcr documentation build configuration file, created by
-# sphinx-quickstart on Sun Nov  9 16:34:02 2014.
+# sphinx-quickstart on Sun Nov 30 15:42:02 2014.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -14,6 +14,8 @@
 
 import sys
 import os
+
+import sphinx_rtd_theme
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -30,8 +32,7 @@ import os
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.coverage',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
 ]
 
@@ -49,7 +50,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'mascpcr'
-copyright = u'2014. Ben Pruitt, Nick Conway'
+copyright = u'2014, Ben Pruitt, Nick Conway; Wyss Institute'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -75,7 +76,7 @@ language = None
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = []
+exclude_patterns = ['_build']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -106,7 +107,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -114,7 +115,7 @@ html_theme = 'default'
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -221,7 +222,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'mascpcr.tex', u'mascpcr Documentation',
-   u'Ben Pruitt, Nick Conway', 'manual'),
+   u'Ben Pruitt, Nick Conway; Wyss Institute', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -251,7 +252,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'mascpcr', u'mascpcr Documentation',
-     [u'Ben Pruitt, Nick Conway'], 1)
+     [u'Ben Pruitt, Nick Conway; Wyss Institute'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -265,7 +266,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'mascpcr', u'mascpcr Documentation',
-   u'Ben Pruitt, Nick Conway', 'mascpcr', 'One line description of project.',
+   u'Ben Pruitt, Nick Conway; Wyss Institute', 'mascpcr', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -280,3 +281,7 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {'http://docs.python.org/': None}

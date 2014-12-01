@@ -139,19 +139,26 @@ def generateLUTs(genome_fp, ref_genome_fp, start_idx, end_idx,
                                of an assembly.
 
     Args:
-        ``genome_fp``: filepath to recoded / modified genome genbank file
-        ``ref_genome_fp``: filepath to wt / reference genome genbank file
-        ``start_idx``: start index of recoded genome (int) for primer design
-        ``end_idx``: end index of recoded genome (int) for primer design
+        genome_fp (str)                         : filepath to recoded / 
+                                                  modified genome genbank file
+        ref_genome_fp (str)                     : filepath to wt / reference 
+                                                  genome genbank file
+        start_idx (int)                         : start index of recoded genome 
+                                                  for primer design
+        end_idx (int)                           : end index of recoded genome 
+                                                  for primer design
 
-    Kwargs:
-        ``border_feature_types``: list of feature types (e.g., ['gene', 'CDS'])
-        ``border_qualifier_regexs``: dict of <field name>: <value regex> 
-                                     entries
-        ``cache_luts``: whether or not to cache the LUTs on disk for future 
-                        runs
-        ``cache_dir``: the directory in which to cache the LUTs (defaults to
-                       the ``cache/`` directory inside of the module directory)
+        border_feature_types (list, optional)   : list of feature types 
+                                                  (e.g., ['gene', 'CDS'])
+        border_qualifier_regexs (dict, optional): dict of <field name>: 
+                                                  <value regex> entries
+        cache_luts (bool, optional)             : whether or not to cache the 
+                                                  LUTs on disk for future runs
+        cache_dir (str, optional)               : the directory in which to 
+                                                  cache the LUTs (defaults to
+                                                  the ``cache/`` directory 
+                                                  inside of the module 
+                                                  directory)
 
     Returns:
         Genome sequence (str), reference genome sequence (str), index_lut 
@@ -208,16 +215,8 @@ def generateLUTs(genome_fp, ref_genome_fp, start_idx, end_idx,
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~ Main pipeline entry point ~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-def findMascPrimers(
-            idx_lut,            # LUT mapping genome index to ref_genome index
-            genome_str,         # Genome sequence string
-            ref_genome_str,     # Reference genome sequence string
-            start_idx,          # Start index for MASC PCR design
-            end_idx,            # End index (inclusive) for MASC PCR design
-            edge_lut,           # Pre-populated edge LUT
-            mismatch_lut,       # Pre-populated mismatch LUT
-            border_lut=None,    # Array of feature border indices to overlap
-            params=None):       # General design params (see DEFAULT_PARAMS)
+def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
+                    edge_lut, mismatch_lut, border_lut=None, params=None):
     """Find a set of MASC PCR primer sets for the given genomic region
 
     This is the main entry point for the ``mascpcr`` design pipeline. It 
@@ -226,24 +225,30 @@ def findMascPrimers(
     provided parameters (``params``).
 
     Args:
-        ``idx_lut``: numpy array of index mappings between two genomes (see 
-                     :func:``buildIdxLUT``)
-        ``genome_str``: recoded/modified genome sequence (string)
-        ``ref_genome_str``: reference genome sequence (string)
-        ``start_idx``: start index of recoded genome (int) for primer design
-        ``end_idx``: end index of recoded genome (int) for primer design
-        ``edge_lut``: bitarray LUT of discontinuities in the index mapping 
-        ``mismatch_lut``: bitarray LUT of localized mismatches in the index 
-                          mapping 
+        idx_lut (``numpy.ndarray``)         : numpy array of index mappings 
+                                              between two genomes (see 
+                                              :func:``buildIdxLUT``)
+        genome_str (str)                    : recoded/modified genome sequence 
+        ref_genome_str (str)                : reference genome sequence 
+        start_idx (int)                     : start index of recoded genome for 
+                                              primer design
+        end_idx (int)                       : end index of recoded genome for 
+                                              primer design
+        edge_lut (``bitarray.bitarray``)    : bitarray LUT of discontinuities 
+                                              in the index mapping 
+        mismatch_lut (``bitarray.bitarray``): bitarray LUT of localized 
+                                              mismatches in the index mapping
 
-    Kwargs:
-        ``border_lut``: bitarray LUT of user-specified feature border indices 
-        ``params``: user-specified pipeline parameters to override the defaults
-                    (see ``DEFAULT_PARAMS``)
+        border_lut (``bitarray.bitarray``, optional): bitarray LUT of 
+                                              user-specified feature border 
+                                              indices 
+        params (dict, optional)             : user-specified pipeline 
+                                              parameters to override the 
+                                              defaults (see ``DEFAULT_PARAMS``)
 
     Returns:
         ``None`` (prints status updates to stdout and writes output to files
-        as specified in the ``params``)
+        as specified in the :param:``params``)
 
     Raises:
         ``OSError``
