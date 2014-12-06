@@ -19,7 +19,7 @@ mascpcr.pipeline
 ~~~~~~~~~~~~~~~~
 
 This is the main entry point for MASC PCR primer design. It contains the core
-`findMascPrimers` method as well as some helper methods related to LUT 
+`findMascPrimers` method as well as some helper methods related to LUT
 generation (if you're generating multiple MASC PCR primer sets from the same
 genome/reference genome it's best to just make these calls once).
 
@@ -67,7 +67,7 @@ DEFAULT_PARAMS = {
     # 'product_sizes': (850, 700, 600, 500, 400, 300, 250, 200, 150, 100),
     # PCR product size tolerance (+/- this value in bp)
     'product_size_tolerance': 10,
-    # minimum base distance of a primer to the boundaries of a bin 
+    # minimum base distance of a primer to the boundaries of a bin
     # (not implemented)
     'bin_edge_offset': 67,
     # The following parameters are related to thermodynamic calculations
@@ -81,7 +81,7 @@ DEFAULT_PARAMS = {
         # [thermo] DNA concentration in nM
         'dna_conc': 200,
     },
-    # Tm above which primer candidates will be thrown out for 
+    # Tm above which primer candidates will be thrown out for
     # homo/heterodimerization, hairpin formation, mispriming, etc.
     'spurious_tm_clip': 40,
     # Filepath at which to write output files, defaults to current working dir
@@ -95,7 +95,13 @@ DEFAULT_PARAMS = {
     # Whether or not to dump these parameters into the output report
     'dump_params': True,
     # Whether or not to output an .xlsx file for IDT orders
-    'output_xlsx': True
+    'output_xlsx': True,
+    # Format of the .xlsx file (``continuous`` or ``by_row``)
+    # If the format is "continuous", the primers will be loaded in row order
+    # with no gaps (A1: bin 1 d_primer, A2: bin 2 d_primer, etc)
+    # If the format is "by_row", primers will be separated in rows by type.
+    # If possible, the rows of primers will be separated by empty rows
+    'xlsx_format': 'by_row'
 }
 
 MascPrimerSet = namedtuple('MascPrimerSet',
@@ -107,29 +113,29 @@ MascPrimerSet = namedtuple('MascPrimerSet',
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Helper functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-def generateLUTs(genome_fp, ref_genome_fp, start_idx, end_idx, 
-                 border_feature_types=None, border_qualifier_regexs=None, 
+def generateLUTs(genome_fp, ref_genome_fp, start_idx, end_idx,
+                 border_feature_types=None, border_qualifier_regexs=None,
                  cache_luts=True, cache_dir=CACHE_DIR):
     """Generate the LUT datastructures necessary for the mascpcr pipeline
 
-    Builds the index, edge, mismatch, and (optionally) feature border lookup 
+    Builds the index, edge, mismatch, and (optionally) feature border lookup
     tables. All LUTs are of equal length to the recoded / modified genome.
 
         *index (idx_lut)*: LUT mapping recoded / modified genome indices to
                            wildtype genome indices. The numpy array is indexed
-                           by recoded genome index and the value at each 
+                           by recoded genome index and the value at each
                            position is the corresponding wildtype genome index.
                            If the value at a given position is -1, then that
-                           base in the recoded genome did not map to the 
+                           base in the recoded genome did not map to the
                            wildtype genome.
 
-        *edge (edge_lut)*: LUT of 'edges' in the index mapping. Edges are 
+        *edge (edge_lut)*: LUT of 'edges' in the index mapping. Edges are
                            discontinuities in the mapping where a continuous
-                           region of recoded -> wildtype mapping is 
+                           region of recoded -> wildtype mapping is
                            interrupted.
 
-        *mismatch (mismatch_lut)*: LUT of localized base mismatches used to 
-                                   identify good points of discrimination 
+        *mismatch (mismatch_lut)*: LUT of localized base mismatches used to
+                                   identify good points of discrimination
                                    between the recoded and wildtype genomes.
 
         *border (border_lut)*: LUT of the border indices of features matching
@@ -139,30 +145,30 @@ def generateLUTs(genome_fp, ref_genome_fp, start_idx, end_idx,
                                of an assembly.
 
     Args:
-        genome_fp (str)                         : filepath to recoded / 
+        genome_fp (str)                         : filepath to recoded /
                                                   modified genome genbank file
-        ref_genome_fp (str)                     : filepath to wt / reference 
+        ref_genome_fp (str)                     : filepath to wt / reference
                                                   genome genbank file
-        start_idx (int)                         : start index of recoded genome 
+        start_idx (int)                         : start index of recoded genome
                                                   for primer design
-        end_idx (int)                           : end index of recoded genome 
+        end_idx (int)                           : end index of recoded genome
                                                   for primer design
 
-        border_feature_types (list, optional)   : list of feature types 
+        border_feature_types (list, optional)   : list of feature types
                                                   (e.g., ['gene', 'CDS'])
-        border_qualifier_regexs (dict, optional): dict of <field name>: 
+        border_qualifier_regexs (dict, optional): dict of <field name>:
                                                   <value regex> entries
-        cache_luts (bool, optional)             : whether or not to cache the 
+        cache_luts (bool, optional)             : whether or not to cache the
                                                   LUTs on disk for future runs
-        cache_dir (str, optional)               : the directory in which to 
+        cache_dir (str, optional)               : the directory in which to
                                                   cache the LUTs (defaults to
-                                                  the ``cache/`` directory 
-                                                  inside of the module 
+                                                  the ``cache/`` directory
+                                                  inside of the module
                                                   directory)
 
     Returns:
-        Genome sequence (str), reference genome sequence (str), index_lut 
-        (numpy array), edge_lut (binary bitarray), mismatch_lut 
+        Genome sequence (str), reference genome sequence (str), index_lut
+        (numpy array), edge_lut (binary bitarray), mismatch_lut
         (binary bitarray), (optionally) border_lut (binary bitarray) -- None if
         not generated.
 
@@ -209,7 +215,7 @@ def generateLUTs(genome_fp, ref_genome_fp, start_idx, end_idx,
                                                     border_qualifier_regexs)
         print('Found {} border indices'.format(border_lut.count(1)))
 
-    return (genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut, 
+    return (genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut,
             border_lut)
 
 
@@ -219,31 +225,31 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
                     edge_lut, mismatch_lut, border_lut=None, params=None):
     """Find a set of MASC PCR primer sets for the given genomic region
 
-    This is the main entry point for the ``mascpcr`` design pipeline. It 
-    requires the the underlying LUTs have been prebuilt, and performs all 
+    This is the main entry point for the ``mascpcr`` design pipeline. It
+    requires the the underlying LUTs have been prebuilt, and performs all
     primer finding and output generating tasks as specified in the user-
     provided parameters (``params``).
 
     Args:
-        idx_lut (``numpy.ndarray``)         : numpy array of index mappings 
-                                              between two genomes (see 
+        idx_lut (``numpy.ndarray``)         : numpy array of index mappings
+                                              between two genomes (see
                                               :func:``buildIdxLUT``)
-        genome_str (str)                    : recoded/modified genome sequence 
-        ref_genome_str (str)                : reference genome sequence 
-        start_idx (int)                     : start index of recoded genome for 
+        genome_str (str)                    : recoded/modified genome sequence
+        ref_genome_str (str)                : reference genome sequence
+        start_idx (int)                     : start index of recoded genome for
                                               primer design
-        end_idx (int)                       : end index of recoded genome for 
+        end_idx (int)                       : end index of recoded genome for
                                               primer design
-        edge_lut (``bitarray.bitarray``)    : bitarray LUT of discontinuities 
-                                              in the index mapping 
-        mismatch_lut (``bitarray.bitarray``): bitarray LUT of localized 
+        edge_lut (``bitarray.bitarray``)    : bitarray LUT of discontinuities
+                                              in the index mapping
+        mismatch_lut (``bitarray.bitarray``): bitarray LUT of localized
                                               mismatches in the index mapping
 
-        border_lut (``bitarray.bitarray``, optional): bitarray LUT of 
-                                              user-specified feature border 
-                                              indices 
-        params (dict, optional)             : user-specified pipeline 
-                                              parameters to override the 
+        border_lut (``bitarray.bitarray``, optional): bitarray LUT of
+                                              user-specified feature border
+                                              indices
+        params (dict, optional)             : user-specified pipeline
+                                              parameters to override the
                                               defaults (see ``DEFAULT_PARAMS``)
 
     Returns:
@@ -271,7 +277,7 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
     fwd_candidates_found = 0
     rev_candidates_found = 0
     candidates_checked = 0
-    print('Finding MASC PCR primers for target with output basename: ', 
+    print('Finding MASC PCR primers for target with output basename: ',
           params['output_basename'])
     mismatch_count = mismatch_lut.count(1)
     print("Total Mismatches: {}, Percent Mismatches: {:.2f}".format(
@@ -345,16 +351,16 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
     print('Finding optimal set of MASC primers...')
 
     # Get target indices / seq area for local mispriming checks
-    target_area_offset = min(1000, (len(genome_str) - 
+    target_area_offset = min(1000, (len(genome_str) -
                             (end_idx - start_idx) / 2))
     target_start_idx = start_idx - target_area_offset
     target_end_idx = end_idx + target_area_offset
 
-    target_area = genome_str[max(0, target_start_idx): 
+    target_area = genome_str[max(0, target_start_idx):
                              min(target_end_idx, len(genome_str))]
 
     if target_start_idx < 0:
-        target_area = genome_str[target_start_idx:] + target_area 
+        target_area = genome_str[target_start_idx:] + target_area
     if target_end_idx > len(genome_str):
         target_area += genome_str[:target_end_idx - len(genome_str)]
 
@@ -365,13 +371,13 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
 
     if ref_target_start_idx == -1:
         ref_start_offset = 1
-        while (ref_target_start_idx == -1 and start_idx - 
+        while (ref_target_start_idx == -1 and start_idx -
                 ref_start_offset > 0):
             ref_target_start_idx = idx_lut[start_idx - ref_start_offset]
             ref_start_offset += 1
     if ref_target_end_idx == -1:
         ref_end_offset = 1
-        while (ref_target_end_idx == -1 and 
+        while (ref_target_end_idx == -1 and
                target_end_idx + ref_end_offset < len(genome_str)):
             ref_target_end_idx = idx_lut[end_idx + ref_end_offset]
             ref_end_offset += 1
@@ -379,17 +385,17 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
     ref_target_start_idx -= target_area_offset
     ref_target_end_idx += target_area_offset
 
-    ref_target_area = ref_genome_str[max(0, ref_target_start_idx): 
-                                     min(ref_target_end_idx, 
-                                         len(ref_genome_str))]  
+    ref_target_area = ref_genome_str[max(0, ref_target_start_idx):
+                                     min(ref_target_end_idx,
+                                         len(ref_genome_str))]
 
     if ref_target_start_idx < 0:
         ref_target_area = ref_genome_str[ref_target_start_idx:] + \
-                          ref_target_area 
+                          ref_target_area
     if ref_target_end_idx > len(ref_genome_str):
         ref_target_area += ref_genome_str[:ref_target_end_idx - \
                            len(ref_genome_str)]
-         
+
 
     def checkSetForHeterodimers(set_of_primer_sets, tm_max=40):
         all_primers = []
@@ -420,9 +426,9 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
                                                 target_area_offset),
                                                 params)
                 w_tm = offtarget.checkOffTarget(w_primer.seq, ref_target_area,
-                                                (w_primer.idx - 
+                                                (w_primer.idx -
                                                 idx_lut[start_idx] +
-                                                target_area_offset - 
+                                                target_area_offset -
                                                 ref_start_offset), params)
                 c_tm = offtarget.checkOffTarget(c_primer.seq, target_area,
                                                 (c_primer.idx - start_idx +
@@ -525,7 +531,7 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
             heterodimer_conflicts[bin1_idx][ps1_idx].append((bin2_idx, ps2_idx))
             heterodimer_conflicts[bin2_idx][ps1_idx].append((bin1_idx, ps1_idx))
             continue
-        if not checkSetForOffTarget(set_of_primer_sets, 
+        if not checkSetForOffTarget(set_of_primer_sets,
                                     params['spurious_tm_clip']):
             print('-> Failed mispriming check')
             continue
@@ -536,9 +542,9 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~ Write output files ~~~~~~~~~~~~~~~~~~~~~~~~~ #
     if params['output_report']:
-        ioutil.writeCsvReport(idx_lut, set_of_primer_sets, combined_bins, 
+        ioutil.writeCsvReport(idx_lut, set_of_primer_sets, combined_bins,
                               params)
     if params['output_xlsx']:
-        ioutil.writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins, 
+        ioutil.writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins,
                                 params)
 

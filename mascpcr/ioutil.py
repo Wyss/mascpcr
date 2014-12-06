@@ -57,7 +57,7 @@ def getPrimerPairProductSize(pc1, pc2):
 def writePrimerRec(fd, pc, idx_lut, recoded_idx=True, gen_wt_idx=False):
     """ Write a single primer record to the provided open file descriptor
 
-    A primer record consists of all of the relevant information contained 
+    A primer record consists of all of the relevant information contained
     within a ``PrimerCandidate`` namedtuple in csv format:
 
         <strand, 1 or -1>,<recoded_idx, if relevant>,<wt_idx, if relevant>,
@@ -65,19 +65,19 @@ def writePrimerRec(fd, pc, idx_lut, recoded_idx=True, gen_wt_idx=False):
         <homodimer tm>
 
     Args:
-        fd (file)                       : open file descriptor to which to 
+        fd (file)                       : open file descriptor to which to
                                           write the primer record
         pc (``PrimerCandidate``)        : PrimerCandidate namedtuple for which
                                           to write the record
 
-        recoded_idx (bool, optional)    : (bool) whether or not the primer's 
-                                          index is in the recoded genome idx 
+        recoded_idx (bool, optional)    : (bool) whether or not the primer's
+                                          index is in the recoded genome idx
                                           space or the wt genome idx space
-        gen_wt_idx (bool, optional)     : if ``recoded_idx`` is ``True``, 
-                                          specifies that the index on the wt 
+        gen_wt_idx (bool, optional)     : if ``recoded_idx`` is ``True``,
+                                          specifies that the index on the wt
                                           genome should be calculated (used for
                                           common primers)
-    
+
     Returns:
         ``None``
 
@@ -97,13 +97,13 @@ def writePrimerRec(fd, pc, idx_lut, recoded_idx=True, gen_wt_idx=False):
 def writeCsvReport(idx_lut, set_of_primer_sets, combined_bins, params):
     """Write a pipeline output report in .csv format
 
-    The report contains general information related to the number of 
-    primer candidates found in each bin, the bin sizes, primer pair scores, 
-    etc, as well as detailed information for each of the primers in the 
-    final set of sets. Some information related to the output is garnered 
+    The report contains general information related to the number of
+    primer candidates found in each bin, the bin sizes, primer pair scores,
+    etc, as well as detailed information for each of the primers in the
+    final set of sets. Some information related to the output is garnered
     from the ``params`` dictionary::
 
-        The filepath is built using ``params['output_fp'] + 
+        The filepath is built using ``params['output_fp'] +
         params['output_basename'] + '_masc_report.csv'``
 
         If params['dump_params'] is ``True``, the parameters dictionary will
@@ -112,22 +112,22 @@ def writeCsvReport(idx_lut, set_of_primer_sets, combined_bins, params):
     Args:
         idx_lut (``numpy.ndarray``) : numpy array of index mapping from recoded
                                       to wt genome
-        set_of_primer_sets (list)   : list of length equal to the number of 
-                                      bins specifying the primer set chosen 
-                                      from each bin (see code in 
+        set_of_primer_sets (list)   : list of length equal to the number of
+                                      bins specifying the primer set chosen
+                                      from each bin (see code in
                                       :module:``mascpcr.pipeline``)
-        combined_bins (list)        : list of length equal to the number of 
-                                      bins containing sorted lists of primer 
+        combined_bins (list)        : list of length equal to the number of
+                                      bins containing sorted lists of primer
                                       sets for each respective bin
-        params (dict)               : parameters dictionary used throughout the 
-                                      pipeline (see 
+        params (dict)               : parameters dictionary used throughout the
+                                      pipeline (see
                                       :module:``mascpcr.pipeline``)
 
     Returns:
         ``None``
 
     """
-    output_fp = os.path.join(params['output_fp'], params['output_basename'] + 
+    output_fp = os.path.join(params['output_fp'], params['output_basename'] +
                              '_masc_report.csv')
 
     with open(output_fp, 'w') as fd_out:
@@ -196,18 +196,19 @@ def writeCsvReport(idx_lut, set_of_primer_sets, combined_bins, params):
 _IDT_HEADERS = ['WellPosition', 'Name', 'Sequence', 'Notes']
 _IDT_HEADER_POSITIONS = ['A1', 'B1', 'C1', 'D1']
 
-def wellGen():
+def wellGen(starting_row='A'):
     """Return well ID by row (A1, A2, ... A11, A12, B1, B2, ... B11, B12, etc)
     """
-    for col, row in itertools.product('ABCDEFGH', range(1, 13)):
-        yield col + ('%02d' % row)
+    rows = 'ABCDEFGH'['ABCDEFGH'.index(starting_row):]
+    for row, col in itertools.product(rows, range(1, 13)):
+        yield '%s%02d' % (row, col)
 
 
 def writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins, params):
     """Write an IDT-style order file in .xlsx format
 
     The IDT order format is comprised of 3 columns: 'WellPosition', 'Name', and
-    'Sequence'. This function populates the file in row order (A1->A12, 
+    'Sequence'. This function populates the file in row order (A1->A12,
     B1->B12) and generates the primer names using this convention::
 
         <``params['output_basename']``>.<bin number>.<primer type, 'w'/'d'/'c'>
@@ -220,22 +221,22 @@ def writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins, params):
 
         In this case, ``params['output_basename'] is 'seg2'.
 
-        The filepath is built using ``params['output_fp'] + 
+        The filepath is built using ``params['output_fp'] +
         params['output_basename'] + '_masc_order.xslx'``
 
 
     Args:
-        idx_lut (``numpy.ndarray``) : numpy array of index mapping from recoded 
+        idx_lut (``numpy.ndarray``) : numpy array of index mapping from recoded
                                       to wt genome
-        set_of_primer_sets (list)   : list of length equal to the number of 
-                                      bins specifying the primer set chosen 
-                                      from each bin (see code in 
+        set_of_primer_sets (list)   : list of length equal to the number of
+                                      bins specifying the primer set chosen
+                                      from each bin (see code in
                                       :module:``mascpcr.pipeline``)
-        combined_bins (list)        : list of length equal to the number of 
-                                      bins containing sorted lists of primer 
+        combined_bins (list)        : list of length equal to the number of
+                                      bins containing sorted lists of primer
                                       sets for each respective bin
-        params (dict)               : parameters dictionary used throughout 
-                                      the pipeline (see 
+        params (dict)               : parameters dictionary used throughout
+                                      the pipeline (see
                                       :module:``mascpcr.pipeline``)
 
     Returns:
@@ -245,28 +246,89 @@ def writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins, params):
     ob = params['output_basename']
     wb = openpyxl.Workbook()
     ws = wb.active
+    output_type = params['xlsx_format']
+    # Headers
     for cell_id, header in zip(_IDT_HEADER_POSITIONS, _IDT_HEADERS):
         ws.cell(cell_id).value = header
     cur_row = 2
-    wg = wellGen()
-    for bin_idx, set_idx in enumerate(set_of_primer_sets):
-        primer_set = combined_bins[bin_idx][set_idx]
-        # Discriminatory primer
-        ws.cell('A%d' % cur_row).value = wg.next()
-        ws.cell('B%d' % cur_row).value = '%s.%d.d' % (ob, bin_idx + 1)
-        ws.cell('C%d' % cur_row).value = primer_set.d_primer.seq
-        cur_row += 1
-        # Wildtype primer
-        ws.cell('A%d' % cur_row).value = wg.next()
-        ws.cell('B%d' % cur_row).value = '%s.%d.wt' % (ob, bin_idx + 1)
-        ws.cell('C%d' % cur_row).value = primer_set.w_primer.seq
-        cur_row += 1
-        # Common primer
-        ws.cell('A%d' % cur_row).value = wg.next()
-        ws.cell('B%d' % cur_row).value = '%s.%d.c' % (ob, bin_idx + 1)
-        ws.cell('C%d' % cur_row).value = primer_set.c_primer.seq
-        cur_row += 1
-    output_fp = os.path.join(params['output_fp'], params['output_basename'] + 
-                          '_masc_order.xlsx')
+    # Body
+    row_length_exceeded = False
+    if output_type == 'by_row':
+        if len(set_of_primer_sets) < 13:
+            print('Writing mascpcr output to .xlsx by row, skipping rows '
+                  'between primer types (discriminatory will be in row A, '
+                  'wild type in row C, and common in row E)')
+        elif len(set_of_primer_sets) < 25:
+            print('Writing mascpcr output to .xlsx by row, (discriminatory '
+                  'will be in rows A+B, wild type in rows C+D, and common in '
+                  'rows E+F)')
+        else:
+            print('Number of bins exceeds 24, reverting to continuous output '
+                  'generation')
+            row_length_exceeded = True
+        if not row_length_exceeded:
+            # Discriminatory
+            wg = wellGen('A')
+            for bin_idx, set_idx in enumerate(set_of_primer_sets):
+                primer_set = combined_bins[bin_idx][set_idx]
+                ws.cell('A%d' % cur_row).value = wg.next()
+                incl_juncs = 'j.' if primer_set.score > 100 \
+                                     else ''
+                ws.cell('B%d' % cur_row).value = '%s.%d.%sd' % (ob,
+                                                 bin_idx + 1, incl_juncs)
+                ws.cell('C%d' % cur_row).value = primer_set.d_primer.seq
+                cur_row += 1
+            # Wild type
+            wg = wellGen('C')
+            for bin_idx, set_idx in enumerate(set_of_primer_sets):
+                primer_set = combined_bins[bin_idx][set_idx]
+                ws.cell('A%d' % cur_row).value = wg.next()
+                incl_juncs = 'j.' if primer_set.score > 100 \
+                                     else ''
+                ws.cell('B%d' % cur_row).value = '%s.%d.%sw' % (ob,
+                                                 bin_idx + 1, incl_juncs)
+                ws.cell('C%d' % cur_row).value = primer_set.w_primer.seq
+                cur_row += 1
+            # Common primer
+            wg = wellGen('E')
+            for bin_idx, set_idx in enumerate(set_of_primer_sets):
+                primer_set = combined_bins[bin_idx][set_idx]
+                ws.cell('A%d' % cur_row).value = wg.next()
+                incl_juncs = 'j.' if primer_set.score > 100 \
+                                     else ''
+                ws.cell('B%d' % cur_row).value = '%s.%d.%sc' % (ob,
+                                                 bin_idx + 1, incl_juncs)
+                ws.cell('C%d' % cur_row).value = primer_set.c_primer.seq
+                cur_row += 1
+    if output_type == 'continuous' or row_length_exceeded:
+        wg = wellGen()
+        for bin_idx, set_idx in enumerate(set_of_primer_sets):
+            primer_set = combined_bins[bin_idx][set_idx]
+            # Discriminatory primer
+            ws.cell('A%d' % cur_row).value = wg.next()
+            incl_juncs = 'j.' if primer_set.score > 100 \
+                                 else ''
+            ws.cell('B%d' % cur_row).value = '%s.%d.%sd' % (ob,
+                                             bin_idx + 1, incl_juncs)
+            ws.cell('C%d' % cur_row).value = primer_set.d_primer.seq
+            cur_row += 1
+            # Wildtype primer
+            ws.cell('A%d' % cur_row).value = wg.next()
+            incl_juncs = 'j.' if primer_set.score > 100 \
+                                 else ''
+            ws.cell('B%d' % cur_row).value = '%s.%d.%sw' % (ob,
+                                             bin_idx + 1, incl_juncs)
+            ws.cell('C%d' % cur_row).value = primer_set.w_primer.seq
+            cur_row += 1
+            # Common primer
+            ws.cell('A%d' % cur_row).value = wg.next()
+            incl_juncs = 'j.' if primer_set.score > 100 \
+                             else ''
+            ws.cell('B%d' % cur_row).value = '%s.%d.%sc' % (ob,
+                                             bin_idx + 1, incl_juncs)
+            ws.cell('C%d' % cur_row).value = primer_set.c_primer.seq
+            cur_row += 1
+    output_fp = os.path.join(params['output_fp'], params['output_basename']
+                             + '_masc_order.xlsx')
     wb.save(output_fp)
     print('Wrote output .xlsx to %s' % output_fp)

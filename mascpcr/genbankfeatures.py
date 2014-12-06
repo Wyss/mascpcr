@@ -22,7 +22,7 @@ mascpcr.genbankfeatures
 :copyright: (c) 2014 Ben Pruitt & Nick Conway.
 :license: GPLv2, see LICENSE for more details.
 
-Methods to extract feature footprints / indices from instantiated 
+Methods to extract feature footprints / indices from instantiated
 ``SeqRecord`` objects (``Biopython`` objects that abstract the contents of a
 genbank file).
 
@@ -38,12 +38,12 @@ def filterFeatures(sr_obj, feature_types=None, qualifier_regexs=None):
     """Filter a `SeqRecord` object's `SeqFeature` list by type and qualifiers.
 
     Args:
-        sr_obj (``SeqRecord``)              : instantiated Biopython 
+        sr_obj (``SeqRecord``)              : instantiated Biopython
                                               ``SeqRecord`` object
 
-        feature_types (list, optional)      : list of feature types 
+        feature_types (list, optional)      : list of feature types
                                               (e.g., ['gene', 'CDS'])
-        qualifier_regexs (dict, optional)   : dict of <field name>: 
+        qualifier_regexs (dict, optional)   : dict of <field name>:
                                               <value regex> entries
 
     Returns:
@@ -55,12 +55,12 @@ def filterFeatures(sr_obj, feature_types=None, qualifier_regexs=None):
 
     Examples:
 
-        Return a list of all ``SeqFeature`` objects from ``gb_rec`` 
+        Return a list of all ``SeqFeature`` objects from ``gb_rec``
         that are of type 'mRNA' or 'CDS'::
-    
+
             >>>filterFeatures(gb_rec, ['mRNA', 'CDS'])
 
-        Return a list of all ``SeqFeature`` objects from ``gb_rec`` 
+        Return a list of all ``SeqFeature`` objects from ``gb_rec``
         that are of type 'mRNA' or 'CDS' and that additionally have the
         qualifier field 'gene' with a value that matches the regular expression
         'ubc.*'::
@@ -87,7 +87,9 @@ def filterFeatures(sr_obj, feature_types=None, qualifier_regexs=None):
         if feature_types is not None and feature.type not in feature_types:
             return False
         for feat_key, feat_value_re in qualifier_regexs.items():
-            q_values = feature.qualifiers.get(feat_key, [])
+            q_values = feature.qualifiers.get(feat_key, None)
+            if q_values is None:
+                return False
             for v in q_values:
                 if re.search(feat_value_re, v) is None:
                     return False
@@ -105,12 +107,12 @@ def findBorders(sr_obj, feature_types=None, qualifier_regexs=None,
     Args:
         sr_obj (``SeqRecord``): instantiated Biopython ``SeqRecord`` object
 
-        feature_types (list, optional)      : list of feature types (e.g., 
+        feature_types (list, optional)      : list of feature types (e.g.,
                                               ['gene', 'CDS'])
-        qualifier_regexs (list, optional)   : dict of <field name>: 
+        qualifier_regexs (list, optional)   : dict of <field name>:
                                               <value regex> entries
-        strand_specific (list, optional)    : boolean determining whether 
-                                              separate lists should be returned 
+        strand_specific (list, optional)    : boolean determining whether
+                                              separate lists should be returned
                                               for each strand (fwd / rev)
     Returns:
         List(s) of (<idx>, <1 if rising edge, 0 if falling edge>) tuples.
@@ -148,12 +150,12 @@ def buildBorderLUT(sr_obj, feature_types=None, qualifier_regexs=None,
     Args:
         sr_obj (``SeqRecord``): instantiated Biopython ``SeqRecord`` object
 
-        feature_types (list, optional)      : list of feature types (e.g., 
+        feature_types (list, optional)      : list of feature types (e.g.,
                                               ['gene', 'CDS'])
-        qualifier_regexs (list, optional)   : dict of <field name>: 
+        qualifier_regexs (list, optional)   : dict of <field name>:
                                               <value regex> entries
-        strand_specific (list, optional)    : boolean determining whether 
-                                              separate lists should be returned 
+        strand_specific (list, optional)    : boolean determining whether
+                                              separate lists should be returned
                                               for each strand (fwd / rev)
     Returns:
         Binary bitarray(s) (``bitarray.bitarray``) indicating the indices of
@@ -199,9 +201,9 @@ def findAggregateBoundaries(sr_obj, feature_types=None, qualifier_regexs=None):
     Args:
         sr_obj (``SeqRecord``): instantiated Biopython ``SeqRecord`` object
 
-        feature_types (list, optional)      : list of feature types (e.g., 
+        feature_types (list, optional)      : list of feature types (e.g.,
                                               ['gene', 'CDS'])
-        qualifier_regexs (list, optional)   : dict of <field name>: 
+        qualifier_regexs (list, optional)   : dict of <field name>:
                                               <value regex> entries
 
     Returns:
@@ -228,7 +230,7 @@ def findAggregateBoundaries(sr_obj, feature_types=None, qualifier_regexs=None):
         (1001, 4000)
 
     """
-    filtered_features = list(filterFeatures(sr_obj, feature_types, 
+    filtered_features = list(filterFeatures(sr_obj, feature_types,
                                             qualifier_regexs))
     if len(filtered_features) == 0:
         return None, None
