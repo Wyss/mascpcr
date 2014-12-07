@@ -245,7 +245,7 @@ def findCommonPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
                                                   tm_range[1]))/(tm_range[1] -
                                                   tm_range[0])
 
-    if idx - size_range[1] < 0 or idx + size_range[1] > (len(genome_str)-1):
+    if idx - size_range[1] < 0 or idx + size_range[1] > (len(genome_str) - 2):
         return None
 
     delta = size_range[0] - 1
