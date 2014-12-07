@@ -43,7 +43,7 @@ params = {
 # but we will build them dynamically here so that this script will work
 # on any system.
 RECODED_GENOME_FP = os.path.join(PACKAGE_DIR, 'tests', 'test_input', 
-                                 'recoded_genome.gb')
+                                 'recoded_genome_1417977689.gb')
 REFERENCE_GENOME_FP = os.path.join(PACKAGE_DIR, 'tests', 'test_input', 
                                    'reference_genome.gb')
 
@@ -72,8 +72,8 @@ start_idx, end_idx = mascpcr.genbankfeatures.findAggregateBoundaries(
 # As I already know the expected start and end indicies of seg23, we will 
 # just assert that they are correct here as proof of principle
 
-assert start_idx == 1039203
-assert end_idx == 1084477
+assert start_idx == 1127000
+assert end_idx == 1176000
 
 # Now let's build all of the necessary data structures for the design pipline
 #   idx_lut - lookup table that maps recoded indices to ref indices
@@ -96,7 +96,7 @@ genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut, \
         # are planning on running the pipeline against a single recoded 
         # genome multiple times it's worth the ~20 mb or so to cache the 
         # lookup tables and save a couple of minutes per call
-        cache_luts=False
+        # cache_luts=False
 )
 
 # This call runs the actual pipeline with the data structures that we just
