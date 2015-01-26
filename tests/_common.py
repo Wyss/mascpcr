@@ -23,7 +23,7 @@ atexit.register(rmCache)
 
 
 RECODED_GENOME_FP = os.path.join(
-    LOCAL_DIR, 'test_input', 'recoded_genome.gb')
+    LOCAL_DIR, 'test_input', 'recoded_genome_1417977689.gb')
 
 
 REFERENCE_GENOME_FP = os.path.join(

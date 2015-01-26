@@ -369,6 +369,13 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
     ref_start_offset = 0
     ref_end_offset = 0
 
+    if ref_target_end_idx < ref_target_start_idx and ref_target_end_idx > -1:
+        temp_end_idx = end_idx + 1
+        while ref_target_end_idx < ref_target_start_idx and temp_end_idx \
+              < len(idx_lut):
+            ref_target_end_idx = idx_lut[temp_end_idx]
+            temp_end_idx += 1
+
     if ref_target_start_idx == -1:
         ref_start_offset = 1
         while (ref_target_start_idx == -1 and start_idx -
@@ -395,6 +402,7 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
     if ref_target_end_idx > len(ref_genome_str):
         ref_target_area += ref_genome_str[:ref_target_end_idx - \
                            len(ref_genome_str)]
+
 
 
     def checkSetForHeterodimers(set_of_primer_sets, tm_max=40):
