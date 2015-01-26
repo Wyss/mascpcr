@@ -40,12 +40,12 @@ LOCAL_DIR = os.path.dirname(os.path.realpath(__file__))
 CACHE_DIR = os.path.join(LOCAL_DIR, 'cache')
 CWD = os.getcwd()
 
-import indexing
-import ioutil
-import primercandidate
-import primerpartition
-import genbankfeatures
-import offtarget
+from . import indexing
+from . import ioutil
+from . import primercandidate
+from . import primerpartition
+from . import genbankfeatures
+from . import offtarget
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#

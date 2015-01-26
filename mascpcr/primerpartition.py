@@ -21,7 +21,7 @@ mascpcr.primerpartition
 
 Contains methods for partitioning PrimerCandidates into the MASC PCR bins.
 
-The methods are strand specific (partitionCandidatesFWD partitions forward 
+The methods are strand specific (partitionCandidatesFWD partitions forward
 strand candidates and partitionCandidatesREV partitions reverse strand
 candidates)
 
@@ -29,7 +29,7 @@ candidates)
 
 import primer3
 
-import primercandidate
+from . import primercandidate
 
 
 def partitionCandidatesFWD(
@@ -182,7 +182,7 @@ def partitionCandidatesREV(primer_candidates,
                         if (primer3.calcHeterodimer(
                                 discriminatory_primer.seq,
                                 fwd_candidate.seq,
-                                **params['thermo_params']).tm > 
+                                **params['thermo_params']).tm >
                                 spurious_tm_clip):
                             break
                         if fwd_candidate_best is None:
