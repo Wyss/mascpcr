@@ -90,8 +90,9 @@ def writePrimerRec(fd, pc, idx_lut, recoded_idx=True, gen_wt_idx=False):
     else:
         pc_idx = 'N/A,{}'.format(pc.idx)
     fd.write(','.join([str(x) for x in [
-        pc.strand, pc_idx, pc.length, pc.seq, sum(pc.mismatch_idxs),
-        max(0, pc.tm), max(0, pc.tm_hairpin), max(0, pc.tm_homo)]]) + '\n')
+        pc.strand, pc_idx, pc.length, pc.seq.decode('utf-8'), 
+        sum(pc.mismatch_idxs), max(0, int(pc.tm)), max(0, int(pc.tm_hairpin)), 
+        max(0, int(pc.tm_homo))]]) + '\n')
 
 
 def writeCsvReport(idx_lut, set_of_primer_sets, combined_bins, params):
@@ -153,8 +154,8 @@ def writeCsvReport(idx_lut, set_of_primer_sets, combined_bins, params):
                 ps_idx,
                 params['product_sizes'][bin_idx],
                 getPrimerPairProductSize(fp, rp),
-                primer_set[0],
-                int(primer_set[0])/50,
+                int(primer_set[0]),
+                int(primer_set[0]/50),
                 sum(fp.mismatch_idxs)
                 ]]) + '\n')
 
@@ -271,7 +272,7 @@ def writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins, params):
             wg = wellGen('A')
             for bin_idx, set_idx in enumerate(set_of_primer_sets):
                 primer_set = combined_bins[bin_idx][set_idx]
-                ws.cell('A%d' % cur_row).value = wg.next()
+                ws.cell('A%d' % cur_row).value = next(wg)
                 incl_juncs = 'j.' if primer_set.score > 100 \
                                      else ''
                 ws.cell('B%d' % cur_row).value = '%s.%d.%sd' % (ob,
@@ -282,7 +283,7 @@ def writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins, params):
             wg = wellGen('C')
             for bin_idx, set_idx in enumerate(set_of_primer_sets):
                 primer_set = combined_bins[bin_idx][set_idx]
-                ws.cell('A%d' % cur_row).value = wg.next()
+                ws.cell('A%d' % cur_row).value = next(wg)
                 incl_juncs = 'j.' if primer_set.score > 100 \
                                      else ''
                 ws.cell('B%d' % cur_row).value = '%s.%d.%sw' % (ob,
@@ -293,7 +294,7 @@ def writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins, params):
             wg = wellGen('E')
             for bin_idx, set_idx in enumerate(set_of_primer_sets):
                 primer_set = combined_bins[bin_idx][set_idx]
-                ws.cell('A%d' % cur_row).value = wg.next()
+                ws.cell('A%d' % cur_row).value = next(wg)
                 incl_juncs = 'j.' if primer_set.score > 100 \
                                      else ''
                 ws.cell('B%d' % cur_row).value = '%s.%d.%sc' % (ob,
@@ -305,7 +306,7 @@ def writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins, params):
         for bin_idx, set_idx in enumerate(set_of_primer_sets):
             primer_set = combined_bins[bin_idx][set_idx]
             # Discriminatory primer
-            ws.cell('A%d' % cur_row).value = wg.next()
+            ws.cell('A%d' % cur_row).value = next(wg)
             incl_juncs = 'j.' if primer_set.score > 100 \
                                  else ''
             ws.cell('B%d' % cur_row).value = '%s.%d.%sd' % (ob,
@@ -313,7 +314,7 @@ def writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins, params):
             ws.cell('C%d' % cur_row).value = primer_set.d_primer.seq
             cur_row += 1
             # Wildtype primer
-            ws.cell('A%d' % cur_row).value = wg.next()
+            ws.cell('A%d' % cur_row).value = next(wg)
             incl_juncs = 'j.' if primer_set.score > 100 \
                                  else ''
             ws.cell('B%d' % cur_row).value = '%s.%d.%sw' % (ob,
@@ -321,7 +322,7 @@ def writeIdtXslxFile(idx_lut, set_of_primer_sets, combined_bins, params):
             ws.cell('C%d' % cur_row).value = primer_set.w_primer.seq
             cur_row += 1
             # Common primer
-            ws.cell('A%d' % cur_row).value = wg.next()
+            ws.cell('A%d' % cur_row).value = next(wg)
             incl_juncs = 'j.' if primer_set.score > 100 \
                              else ''
             ws.cell('B%d' % cur_row).value = '%s.%d.%sc' % (ob,

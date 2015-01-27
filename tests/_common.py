@@ -31,5 +31,5 @@ REFERENCE_GENOME_FP = os.path.join(
 
 RECODED_GB = SeqIO.read(RECODED_GENOME_FP, 'gb')
 REFERENCE_GB = SeqIO.read(REFERENCE_GENOME_FP, 'gb')
-RECODED_GB_STR = str(RECODED_GB.seq)
-REFERENCE_GB_STR = str(REFERENCE_GB.seq)
+RECODED_GB_STR = str(RECODED_GB.seq).encode('utf-8')
+REFERENCE_GB_STR = str(REFERENCE_GB.seq).encode('utf-8')

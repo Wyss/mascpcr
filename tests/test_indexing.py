@@ -36,7 +36,7 @@ class TestIndexing(unittest.TestCase):
             idx_lut, 
             TEST_CACHE_DIR)
         with open(os.path.join(TEST_OUTPUT_DIR, 
-                              'test_buildedgelut.out')) as fd:
+                              'test_buildedgelut.out'), 'rb') as fd:
             check_edge_lut = bt.bitarray()
             check_edge_lut.fromfile(fd)
         self.assertEqual(edge_lut, check_edge_lut[:len(edge_lut)])
@@ -57,7 +57,7 @@ class TestIndexing(unittest.TestCase):
             REFERENCE_GB_STR,
             TEST_CACHE_DIR)
         with open(os.path.join(TEST_OUTPUT_DIR, 
-                              'test_buildmismatchlut.out')) as fd:
+                              'test_buildmismatchlut.out'), 'rb') as fd:
             check_mismatch_lut = bt.bitarray()
             check_mismatch_lut.fromfile(fd)
         self.assertEqual(mismatch_lut, check_mismatch_lut[:len(mismatch_lut)])
