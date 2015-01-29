@@ -104,8 +104,8 @@ genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut, \
 # string, which we get from the SeqRecord object (need to cast it to a str)
 mascpcr.findMascPrimers(
     idx_lut=idx_lut,
-    genome_str=str(RECODED_GB_DATA.seq),
-    ref_genome_str=str(REFERENCE_GB_DATA.seq),
+    genome_str=genome_str,
+    ref_genome_str=ref_genome_str,
     start_idx=start_idx,
     end_idx=end_idx,
     edge_lut=edge_lut,

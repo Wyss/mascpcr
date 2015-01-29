@@ -260,7 +260,6 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
         ``OSError``
 
     """
-
     # ~~~~~~~~~~ Reconcile default params with user-provided params ~~~~~~~~~ #
     _params = copy.deepcopy(DEFAULT_PARAMS)
     _params.update(params or {})

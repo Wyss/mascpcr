@@ -139,7 +139,7 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
         root_idx = idx
         candidate_seq_area = rc(genome_str[root_idx:root_idx + delta_lim])
         wt_candidate_seq_area = rc(ref_genome_str[idx_lut[root_idx]:
-                                              idx_lut[root_idx + delta_lim]])
+                                                  idx_lut[root_idx + delta_lim]])
 
     # Check the 3' end for high end stability
     end3p_check = candidate_seq_area[-5:]

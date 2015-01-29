@@ -103,8 +103,8 @@ for seg_num in range(23, 31):
 
     mascpcr.findMascPrimers(
         idx_lut=idx_lut,
-        genome_str=str(RECODED_GB_DATA.seq),
-        ref_genome_str=str(REFERENCE_GB_DATA.seq),
+        genome_str=genome_str,
+        ref_genome_str=ref_genome_str,
         start_idx=seg_indices[seg_num][0],
         end_idx=seg_indices[seg_num][1],
         edge_lut=edge_lut,
