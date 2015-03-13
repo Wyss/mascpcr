@@ -65,7 +65,9 @@ License
 -------
 
 Copyright (C) 2014. Copyright (c) 2014 Wyss Institute at Harvard University
+
 Ben Pruitt & Nick Conway
+
 See LICENSE for full GPLv2 license.
 
 This program is free software; you can redistribute it and/or modify
