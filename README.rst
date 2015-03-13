@@ -17,30 +17,16 @@ Features:
 Installation
 ------------
 
-Binary dependencies
-~~~~~~~~~~~~~~~~~~~
-
-Get these for your platform (Linux or OS X, Windows is unsupported). These are
-required for the mauve-py dependency to be installed below.
-
-- `automake <https://www.gnu.org/software/automake>`_
-- `libtool <https://www.gnu.org/software/libtool/>`_
-- `pkg-config <http://www.freedesktop.org/wiki/Software/pkg-config/>`_
-- `boost <http://www.boost.org/>`_ > 1.55
-
-Which can easily be installed with the package manager for your OS,
-apt, yum, etc on Linux, or `Homebrew <http://brew.sh/>`_ for OS X
-
 Python library dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. Make sure you have ``setuptools`` installed (``pip install setuptools``).
 2. Install the necessary dependencies in the following order::
 
-    $ pip install cython
-    $ pip install biopython bitarray numpy openpyxl primer3-py six
-    $ pip install git+https://github.com/Wyss/libnano
-    $ pip install git+https://github.com/Wyss/mauve-py
+    cython
+    biopython bitarray numpy openpyxl primer3-py six
+    https://github.com/Wyss/libnano
+    https://github.com/Wyss/mauve-py
 
 3. (optional) Run `setup.py install` to install the package on your PYTHONPATH.
 
