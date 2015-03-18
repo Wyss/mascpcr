@@ -225,7 +225,7 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
                 score=0
             )
             best_primer_pair = (primer, wt_primer)
-        prev_score = score
+            prev_score = score
     return best_primer_pair
 
 
