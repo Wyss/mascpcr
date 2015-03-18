@@ -58,4 +58,12 @@ class TestPipeline(unittest.TestCase):
                                         'seg23_masc_report.csv')
         check_output_report_fp = os.path.join(TEST_OUTPUT_DIR, 
                                               'seg23_masc_report.csv')
+
+        # NOTE: Uncomment the following code to re-create expected output.
+        # If code breaks, you should figure out whether there is really a bug
+        # before uncommenting the following and changing the expected output.
+        # TODO: Come up with more robust test strategy.
+        # import shutil
+        # shutil.copyfile(output_report_fp, check_output_report_fp)
+
         self.assertTrue(filecmp.cmp(output_report_fp, check_output_report_fp))
