@@ -101,7 +101,8 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
         edge_lut (``bitarray.bitarray``): 
         mismatch
 
-
+    Returns:
+        Tuple primer pair (mut_primer, wildtype_primer).
     """
     # Initial param reconciliation
     tm_range = params.get('tm_range', (60, 65))
@@ -109,17 +110,11 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
     size_range = params.get('size_range', (18, 30))
     thermo_params = params.get('thermo_params')
     min_num_mismatches = params.get('min_num_mismatches', 1)
+    lenient_mode = params.get('lenient_mode', False)
 
     # Mismatch score weights from the 3' end of the primer
     weight_mismatch_by_idx = params.get('mismatch_weights',
                                         [5, 4, 4, 3, 3, 2, 1])
-
-    # Score calculation functions for thermodynamic interactions
-    f_weight_homo_dim_tm = lambda x: -(1.0 / spurious_tm_clip) * x
-    f_weight_hairpin_dim_tm = lambda x: -(1.0 / spurious_tm_clip) * x
-    f_weight_hetero_dim_tm = lambda x: -2.0 * abs(x - 0.5 * (tm_range[0] +
-                                                  tm_range[1]))/(tm_range[1] -
-                                                  tm_range[0])
 
     if idx - size_range[1] < 0 or idx + size_range[1] > (len(genome_str)-1):
         return None, None
@@ -142,9 +137,10 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
                                                   idx_lut[root_idx + delta_lim]])
 
     # Check the 3' end for high end stability
-    end3p_check = candidate_seq_area[-5:]
-    if end3p_check.count(b'G') + end3p_check.count(b'C') > 3:
-        return None, None
+    if not lenient_mode:
+        end3p_check = candidate_seq_area[-5:]
+        if end3p_check.count(b'G') + end3p_check.count(b'C') > 3:
+            return None, None
 
     best_primer_pair = (None, None)
     while delta < delta_lim:
@@ -157,21 +153,22 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
         primer_tm = calcTm(seq=primer_candidate, **thermo_params)
         wt_primer_tm = calcTm(seq=wt_primer_candidate, **thermo_params)
 
-        if primer_tm < tm_range[0] or wt_primer_tm < tm_range[0]:
-            continue
-        elif primer_tm > tm_range[1] or wt_primer_tm > tm_range[1]:
-            break
-
         hrp_tm = calcHrp(primer_candidate, **thermo_params).tm
         homo_tm = calcHomo(primer_candidate, **thermo_params).tm
         wt_hrp_tm = calcHrp(wt_primer_candidate, **thermo_params).tm
         wt_homo_tm = calcHomo(wt_primer_candidate, **thermo_params).tm
 
-        if hrp_tm > spurious_tm_clip or homo_tm > spurious_tm_clip:
-            break
+        if not lenient_mode:
+            if primer_tm < tm_range[0] or wt_primer_tm < tm_range[0]:
+                continue
+            elif primer_tm > tm_range[1] or wt_primer_tm > tm_range[1]:
+                break
 
-        if wt_hrp_tm > spurious_tm_clip or wt_homo_tm > spurious_tm_clip:
-            break
+            if hrp_tm > spurious_tm_clip or homo_tm > spurious_tm_clip:
+                break
+
+            if wt_hrp_tm > spurious_tm_clip or wt_homo_tm > spurious_tm_clip:
+                break
 
         # ~~~~~~~~~~~~~~~ Score putative discriminatory primer ~~~~~~~~~~~~~~ #
         local_mismatch_idxs = [0] * delta
@@ -196,10 +193,10 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
         if num_mismatches < min_num_mismatches:
             continue
 
-        score = (f_weight_hetero_dim_tm(primer_tm) +
-                 f_weight_hairpin_dim_tm(hrp_tm) +
-                 f_weight_homo_dim_tm(homo_tm) +
-                 local_mismatch_score)
+        # Score is generalized primer score + number of mismatches.
+        score = scorePrimer(
+                primer_candidate, params, primer_tm=primer_tm, hrp_tm=hrp_tm,
+                homo_tm=homo_tm) + local_mismatch_score
 
         if score > prev_score:
             primer = CandidatePrimer(
@@ -237,13 +234,6 @@ def findCommonPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
     spurious_tm_clip = params.get('spurious_tm_clip', 40)
     size_range = params.get('size_range', (18, 30))
     thermo_params = params.get('thermo_params')
-
-    # Score calculation functions for thermodynamic interactions
-    f_weight_homo_dim_tm = lambda x: -(1.0 / spurious_tm_clip) * x
-    f_weight_hairpin_dim_tm = lambda x: -(1.0 / spurious_tm_clip) * x
-    f_weight_hetero_dim_tm = lambda x: -2.0 * abs(x - 0.5 * (tm_range[0] +
-                                                  tm_range[1]))/(tm_range[1] -
-                                                  tm_range[0])
 
     if idx - size_range[1] < 0 or idx + size_range[1] > (len(genome_str) - 2):
         return None
@@ -289,9 +279,9 @@ def findCommonPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
         if hrp_tm > spurious_tm_clip or homo_tm > spurious_tm_clip:
             break
 
-        score = (f_weight_hetero_dim_tm(primer_tm) +
-                 f_weight_hairpin_dim_tm(hrp_tm) +
-                 f_weight_homo_dim_tm(homo_tm))
+        score = scorePrimer(
+                primer_candidate, params, primer_tm=primer_tm, hrp_tm=hrp_tm,
+                homo_tm=homo_tm)
 
         if score > prev_score:
             best_common_primer = CandidatePrimer(
@@ -307,3 +297,37 @@ def findCommonPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
             )
             prev_score = score
     return best_common_primer
+
+
+def scorePrimer(
+        primer_candidate, params, primer_tm=None, hrp_tm=None, homo_tm=None):
+    """Determines score for the primer, allowing primers to be compared.
+    """
+    # Parse relevant params.
+    tm_range = params.get('tm_range', (60, 65))
+    spurious_tm_clip = params.get('spurious_tm_clip', 40)
+    thermo_params = params.get('thermo_params')
+
+    # Calculate thermodynamic properties if not provided.
+    if not primer_tm:
+        primer_tm = calcTm(seq=primer_candidate, **thermo_params)
+    if not hrp_tm:
+        hrp_tm = calcHrp(primer_candidate, **thermo_params).tm
+    if not homo_tm:
+        homo_tm = calcHomo(primer_candidate, **thermo_params).tm
+
+    # Score calculation functions for thermodynamic interactions.
+    # Intuition is to use functions that grow as the square of the error.
+    f_weight_homo_dim_tm = lambda x: - ((1.0 / spurious_tm_clip) * x) ** 2
+    f_weight_hairpin_dim_tm = lambda x: -((1.0 / spurious_tm_clip) * x) ** 2
+
+    def f_weight_hetero_dim_tm(x):
+        target_tm = 0.5 * (tm_range[0] + tm_range[1])
+        return -((x - target_tm) / (tm_range[1] - tm_range[0])) ** 2
+
+    score = (
+            f_weight_hetero_dim_tm(primer_tm) +
+            f_weight_hairpin_dim_tm(hrp_tm) +
+            f_weight_homo_dim_tm(homo_tm))
+
+    return score
