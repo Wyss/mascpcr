@@ -315,7 +315,7 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
     fwd_bins_l2s = primerpartition.partitionCandidatesFWD(
                             fwd_strand_primer_candidates, start_idx, end_idx,
                             idx_lut, genome_str, ref_genome_str, edge_lut,
-                            mismatch_lut, params=DEFAULT_PARAMS)
+                            mismatch_lut, params=params)
     print("Fwd bin counts (l2s):")
     for i in range(len(fwd_bins_l2s)):
         print("\tBin %d: %d" % (i, len(fwd_bins_l2s[i])))
@@ -324,7 +324,7 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
     rev_bins_l2s = primerpartition.partitionCandidatesREV(
                             rev_strand_primer_candidates, start_idx, end_idx,
                             idx_lut, genome_str, ref_genome_str, edge_lut,
-                            mismatch_lut, params=DEFAULT_PARAMS)
+                            mismatch_lut, params=params)
     print("\nRev bin counts (l2s)")
     for i in range(len(rev_bins_l2s)):
         print("\tBin %d: %d" % (i, len(rev_bins_l2s[i])))

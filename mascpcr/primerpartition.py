@@ -89,22 +89,10 @@ def partitionCandidatesFWD(
                     max3p_no_edge -= 1
                     break
 
-            rev_candidate_best = None
-            for j in range(common_primer_end3p, max3p_no_edge + 1):
-                rev_candidate = primercandidate.findCommonPrimer(
-                    j, -1, idx_lut, genome_str, ref_genome_str, edge_lut, mismatch_lut,
-                    params)
-                if rev_candidate is not None:
-                    if primer3.calcHeterodimer(
-                            discriminatory_primer.seq,
-                            rev_candidate.seq,
-                            **params['thermo_params']).tm > spurious_tm_clip:
-                        break
-                    if rev_candidate_best is None:
-                        rev_candidate_best = rev_candidate
-                    else:
-                        if rev_candidate_best.score < rev_candidate.score:
-                            rev_candidate_best = rev_candidate
+            rev_candidate_best = findBestCommonPrimerIn3pEndRange(
+                    range(common_primer_end3p, max3p_no_edge + 1), -1,
+                    discriminatory_primer, genome_str, ref_genome_str, idx_lut,
+                    edge_lut, mismatch_lut, params)
 
             if rev_candidate_best is not None:
                 masc_pc_bins[i].append((discriminatory_primer,
@@ -172,26 +160,41 @@ def partitionCandidatesREV(primer_candidates,
                         min3p_no_edge += 1
                         break
 
-                fwd_candidate_best = None
-                primercandidate.mismatch_count = 0
-                for j in range(common_primer_end3p, min3p_no_edge - 1, -1):
-                    fwd_candidate = primercandidate.findCommonPrimer(
-                        j, 1, idx_lut, genome_str, ref_genome_str, edge_lut,
-                        mismatch_lut, params)
-                    if fwd_candidate is not None:
-                        if (primer3.calcHeterodimer(
-                                discriminatory_primer.seq,
-                                fwd_candidate.seq,
-                                **params['thermo_params']).tm >
-                                spurious_tm_clip):
-                            break
-                        if fwd_candidate_best is None:
-                            fwd_candidate_best = fwd_candidate
-                        else:
-                            if fwd_candidate_best.score < fwd_candidate.score:
-                                fwd_candidate_best = fwd_candidate
+                fwd_candidate_best = findBestCommonPrimerIn3pEndRange(
+                    range(common_primer_end3p, min3p_no_edge - 1, -1), 1,
+                    discriminatory_primer, genome_str, ref_genome_str, idx_lut,
+                    edge_lut, mismatch_lut, params)
+
                 if fwd_candidate_best is not None:
                     masc_pc_bins[i].append((discriminatory_primer,
                                         wt_primer,
                                         fwd_candidate_best))
     return masc_pc_bins
+
+
+def findBestCommonPrimerIn3pEndRange(
+        common_primer_end3p_range, strand, discriminatory_primer,
+        genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut,
+        primer_finder_params):
+    """Finds best candidate primer 3p given range of ends to search over.
+
+    Returns:
+        primercandidate.CandidatePrimer, or None.
+    """
+    best_common_primer_candidate = None
+    for j in common_primer_end3p_range:
+        candidate = primercandidate.findCommonPrimer(
+            j, strand, idx_lut, genome_str, ref_genome_str, edge_lut,
+            mismatch_lut, primer_finder_params)
+        if candidate is not None:
+            heterodimer_tm = primer3.calcHeterodimer(
+                    discriminatory_primer.seq,
+                    candidate.seq,
+                    **primer_finder_params['thermo_params']).tm
+            if heterodimer_tm > primer_finder_params['spurious_tm_clip']:
+                continue
+            if best_common_primer_candidate is None:
+                best_common_primer_candidate = candidate
+            elif best_common_primer_candidate.score < candidate.score:
+                    best_common_primer_candidate = candidate
+    return best_common_primer_candidate
