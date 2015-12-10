@@ -1,12 +1,12 @@
 Bin number,Potential pairs found,Pair chosen,Ideal PCR product size,Actual PCR product size,Pair score,Included # of gen9 fragment junctions,Discriminatory power (# mismatches)
-1,115,1,700,691,107,2,4
-2,91,0,600,579,110,2,4
-3,70,0,500,498,113,2,4
-4,72,0,400,404,108,2,2
-5,92,0,300,299,111,2,5
-6,94,0,250,241,105,2,2
-7,72,2,200,191,107,2,5
-8,78,1,150,139,56,1,3
+1,115,1,700,720,107,2,4
+2,91,0,600,610,110,2,4
+3,70,0,500,519,113,2,4
+4,72,0,400,435,108,2,2
+5,92,0,300,326,111,2,5
+6,94,0,250,262,105,2,2
+7,72,2,200,209,107,2,5
+8,78,1,150,163,56,1,3
 
 Bin number,Primer type,Strand,Recoded Index,Wildtype Index,Length,Sequence,Number of mismatches,Tm (C),Hairpin Tm (C),Homodimer Tm (C)
 1,Discriminatory primer,-1,1130114,N/A,29,GACTTTTTACGAGGCAGATAAAATTTCTC,4,61,0,6

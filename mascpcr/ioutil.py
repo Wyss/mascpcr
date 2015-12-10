@@ -51,7 +51,7 @@ def getPrimerPairProductSize(pc1, pc2):
         pc1_5p_idx += pc1.length
     if pc2.strand == -1:
         pc2_5p_idx += pc2.length
-    return abs(pc1.idx - pc2.idx)
+    return abs(pc1_5p_idx - pc2_5p_idx)
 
 
 def writePrimerRec(fd, pc, idx_lut, recoded_idx=True, gen_wt_idx=False):
