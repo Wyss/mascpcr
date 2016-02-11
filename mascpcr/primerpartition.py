@@ -79,8 +79,8 @@ def partitionCandidatesFWD(
                 break
 
         # check if edge in the middle of PCR product
-        if (sum(edge_lut[discriminatory_primer_end5p:
-                     common_primer_end3p]) == 0):
+        if (edge_lut[discriminatory_primer_end5p:
+                     common_primer_end3p].count(1) == 0):
             # find the limit with no edges in it
             lim3p = min(common_primer_end3p + 2*size_tol + 1, end_idx + 1)
             max3p_no_edge = common_primer_end3p
@@ -150,8 +150,8 @@ def partitionCandidatesREV(primer_candidates,
         # check if edge in the middle of PCR product
         if common_primer_end3p > current_idx:
             # check if edge in the middle
-            if (sum(edge_lut[common_primer_end3p:
-                         discriminatory_primer_end5p+1]) == 0):
+            if (edge_lut[common_primer_end3p:
+                         discriminatory_primer_end5p+1].count(1) == 0):
                 # find the limit with no edges in it
                 lim3p = max(common_primer_end3p-2*size_tol - 1, start_idx - 1)
                 min3p_no_edge = common_primer_end3p

@@ -75,30 +75,31 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
     """Find a "discriminatory" primer at the given genomic index.
 
     Determines whether or not there is a viable discriminatory primer at the
-    provided genomic index, given all of the necessary lookup tables and
-    sequence information.
+    provided genomic index, given all of the necessary lookup tables and 
+    sequence information. 
 
     This examines the entire putative primer region (within bp range defined by
-    params['size_range'], on the designated strand) for viable primers and
+    params['size_range'], on the designated strand) for viable primers and 
     selects the primer that has the best score, which is calculated based on a
-    number of factors: proximity to ideal Tm, spurious secondary structure
-    melting temperatures, and the number of mismatches between discriminatory
+    number of factors: proximity to ideal Tm, spurious secondary structure 
+    melting temperatures, and the number of mismatches between discriminatory 
     primary and wildtype primer.
 
-    Assuming at least one discriminatory primer passes the minimum cutoffs
-    (i.e., has at least params['min_num_mismatches'], a tm within
-    params['tm_range'] and no homodimer or hairpin tm greater than
-    params['spurious_tm_clip']), the best scoring discriminatory primer and
+    Assuming at least one discriminatory primer passes the minimum cutoffs 
+    (i.e., has at least params['min_num_mismatches'], a tm within 
+    params['tm_range'] and no homodimer or hairpin tm greater than 
+    params['spurious_tm_clip']), the best scoring discriminatory primer and 
     respective wildtype primer CandidatePrimer namedtuples will be returned.
-    Note that the wildtype primer must pass the same stringency of cutoffs
-    as the discriminatory primer.
+    Note that the wildtype primer must pass the same stringency of cutoffs 
+    as the discriminatory primer. 
 
     Args:
         idx (int): index at which the 3' end of the primer must bind
         strand (int): starnd on which to examine primers (1 for fwd, -1 for rev)
-        genome_str (str): recoded/modified genome sequence
+        genome_str (str): recoded/modified genome sequence 
         ref_genome_str (str): reference genome sequence
-        edge_lut (``numpy.ndarray``)
+        edge_lut (``bitarray.bitarray``): 
+        mismatch
 
     Returns:
         Tuple primer pair (mut_primer, wildtype_primer).

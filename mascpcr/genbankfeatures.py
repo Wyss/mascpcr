@@ -31,7 +31,7 @@ from __future__ import print_function
 
 import re
 
-import numpy as np
+import bitarray
 
 
 def filterFeatures(sr_obj, feature_types=None, qualifier_regexs=None):
@@ -158,9 +158,9 @@ def buildBorderLUT(sr_obj, feature_types=None, qualifier_regexs=None,
                                               separate lists should be returned
                                               for each strand (fwd / rev)
     Returns:
-        Boolean numpy arrays indicating the indices of feature borders
-        (border indices have a value of 1). Strand-specific
-        arrays are returned if ``strand_specific`` is ``True``.
+        Binary bitarray(s) (``bitarray.bitarray``) indicating the indices of
+        feature borders (border indices have a value of 1). Strand-specific
+        bitarrays are returned if ``strand_specific`` is ``True``.
 
     Raises:
         None
@@ -170,8 +170,10 @@ def buildBorderLUT(sr_obj, feature_types=None, qualifier_regexs=None,
         fwd_feat_list, rev_feat_list = findBorders(sr_obj, feature_types,
                                                    qualifier_regexs,
                                                    strand_specific)
-        fwd_lut = np.zeros(len(sr_obj.seq), dtype=np.bool)
-        rev_lut = np.zeros(len(sr_obj.seq), dtype=np.bool)
+        fwd_lut = bitarray.bitarray(len(sr_obj.seq))
+        fwd_lut.setall(0)
+        rev_lut = bitarray.bitarray(len(sr_obj.seq))
+        rev_lut.setall(0)
         for rec in fwd_feat_list:
             fwd_lut[rec[0]] = 1
         for rec in rev_feat_list:
@@ -180,7 +182,8 @@ def buildBorderLUT(sr_obj, feature_types=None, qualifier_regexs=None,
     else:
         feat_list = findBorders(sr_obj, feature_types, qualifier_regexs,
                                 strand_specific)
-        feat_lut = np.zeros(len(sr_obj.seq), dtype=np.bool)
+        feat_lut = bitarray.bitarray(len(sr_obj.seq))
+        feat_lut.setall(0)
         for rec in feat_list:
             try:
                 feat_lut[rec[0]] = 1

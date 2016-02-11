@@ -168,9 +168,9 @@ def generateLUTs(genome_fp, ref_genome_fp, start_idx, end_idx,
 
     Returns:
         Genome sequence (str), reference genome sequence (str), index_lut
-        (numpy array), edge_lut (boolean numpy array), mismatch_lut
-        (boolean numpy array), (optionally) border_lut (boolean numpy array) --
-        None if not generated.
+        (numpy array), edge_lut (binary bitarray), mismatch_lut
+        (binary bitarray), (optionally) border_lut (binary bitarray) -- None if
+        not generated.
 
     Raises:
         ``OSError``
@@ -213,7 +213,7 @@ def generateLUTs(genome_fp, ref_genome_fp, start_idx, end_idx,
         border_lut = genbankfeatures.buildBorderLUT(genome_rec,
                                                     border_feature_types,
                                                     border_qualifier_regexs)
-        print('Found {} border indices'.format(sum(border_lut)))
+        print('Found {} border indices'.format(border_lut.count(1)))
 
     return (genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut,
             border_lut)
@@ -240,12 +240,12 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
                                               primer design
         end_idx (int)                       : end index of recoded genome for
                                               primer design
-        edge_lut (``numpy.ndarray``)        : numpy array of discontinuities
+        edge_lut (``bitarray.bitarray``)    : bitarray LUT of discontinuities
                                               in the index mapping
-        mismatch_lut (``numpy.ndarray``)    : numpy array of localized
+        mismatch_lut (``bitarray.bitarray``): bitarray LUT of localized
                                               mismatches in the index mapping
 
-        border_lut (``numpy.ndarray``, optional): numpy array of
+        border_lut (``bitarray.bitarray``, optional): bitarray LUT of
                                               user-specified feature border
                                               indices
         params (dict, optional)             : user-specified pipeline
@@ -278,7 +278,7 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
     candidates_checked = 0
     print('Finding MASC PCR primers for target with output basename: ',
           params['output_basename'])
-    mismatch_count = sum(mismatch_lut)
+    mismatch_count = mismatch_lut.count(1)
     print("Total Mismatches: {}, Percent Mismatches: {:.2f}".format(
           mismatch_count, mismatch_count/float(len(mismatch_lut))*100))
     print('Finding candidate primers...')
@@ -338,10 +338,10 @@ def findMascPrimers(idx_lut, genome_str, ref_genome_str, start_idx, end_idx,
             r_idx = pair[2].idx
             idx1, idx2 = (f_idx, r_idx) if f_idx < r_idx else (r_idx, f_idx)
             score = pair[0].score + pair[2].score
-            if border_lut is not None:
+            if border_lut:
                 # Add an arbitrarily high value to the score for each border
                 # in the primer pair footprint
-                score += sum((border_lut[idx1:idx2]) * 50)
+                score += (border_lut[idx1:idx2].count(1) * 50)
             combined_bins[bin_idx][pair_idx] = MascPrimerSet(score, pair[0],
                                                              pair[1], pair[2])
         # Sort each bin after scoring (highest score first)
