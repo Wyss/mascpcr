@@ -42,8 +42,8 @@ class TestGenbankfeatures(unittest.TestCase):
             ['synth_fragment'],
             {'label': r'seg23.*'})
         check_fp = os.path.join(TEST_OUTPUT_DIR, 'test_buildborderlut.out')
-        with open(check_fp, 'wb') as fd:
-            border_lut.tofile(fd)
+        # with open(check_fp, 'wb') as fd:
+        #     border_lut.tofile(fd)
         with open(check_fp, 'rb') as fd:
             check_lut = np.fromfile(fd, dtype=np.bool)
         self.assertTrue((border_lut == check_lut).all())
@@ -57,10 +57,10 @@ class TestGenbankfeatures(unittest.TestCase):
                                     'test_buildborderlut_fwd.out')
         check_fp_rev= os.path.join(TEST_OUTPUT_DIR,
                                     'test_buildborderlut_rev.out')
-        with open(check_fp_fwd, 'wb') as fd:
-            fwd_border_lut.tofile(fd)
-        with open(check_fp_rev, 'wb') as fd:
-            rev_border_lut.tofile(fd)
+        # with open(check_fp_fwd, 'wb') as fd:
+        #     fwd_border_lut.tofile(fd)
+        # with open(check_fp_rev, 'wb') as fd:
+        #     rev_border_lut.tofile(fd)
         with open(check_fp_fwd, 'rb') as fd:
             check_lut_fwd = np.fromfile(fd, dtype=np.bool)
         self.assertTrue((fwd_border_lut == check_lut_fwd).all())
