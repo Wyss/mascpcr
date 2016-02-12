@@ -39,7 +39,7 @@ class TestGenbankfeatures(unittest.TestCase):
         # Strand agnostic
         border_lut = genbankfeatures.buildBorderLUT(
             RECODED_GB,
-            ['synth_fragment'], 
+            ['synth_fragment'],
             {'label': r'seg23.*'})
         check_fp = os.path.join(TEST_OUTPUT_DIR, 'test_buildborderlut.out')
         # with open(check_fp, 'wb') as fd:
@@ -47,16 +47,17 @@ class TestGenbankfeatures(unittest.TestCase):
         with open(check_fp, 'rb') as fd:
             check_lut = bt.bitarray()
             check_lut.fromfile(fd)
-        self.assertEqual(border_lut, check_lut[:len(border_lut)])
+        self.assertEqual(border_lut, check_lut[:len(border_lut)],
+                         'Border LUTs not equal')
         # Strand specific
         fwd_border_lut, rev_border_lut = genbankfeatures.buildBorderLUT(
             RECODED_GB,
-            ['synth_fragment'], 
+            ['synth_fragment'],
             {'label': r'seg23.*'},
             strand_specific=True)
-        check_fp_fwd = os.path.join(TEST_OUTPUT_DIR, 
+        check_fp_fwd = os.path.join(TEST_OUTPUT_DIR,
                                     'test_buildborderlut_fwd.out')
-        check_fp_rev= os.path.join(TEST_OUTPUT_DIR, 
+        check_fp_rev = os.path.join(TEST_OUTPUT_DIR,
                                     'test_buildborderlut_rev.out')
         # with open(check_fp_fwd, 'wb') as fd:
         #     fwd_border_lut.tofile(fd)
@@ -65,15 +66,17 @@ class TestGenbankfeatures(unittest.TestCase):
         with open(check_fp_fwd, 'rb') as fd:
             check_lut_fwd = bt.bitarray()
             check_lut_fwd.fromfile(fd)
-        self.assertEqual(fwd_border_lut, check_lut_fwd[:len(fwd_border_lut)])  
+        self.assertEqual(fwd_border_lut, check_lut_fwd[:len(fwd_border_lut)],
+                         'Forward border LUTs not equal')
         with open(check_fp_rev, 'rb') as fd:
             check_lut_rev = bt.bitarray()
             check_lut_rev.fromfile(fd)
-        self.assertEqual(rev_border_lut, check_lut_rev[:len(rev_border_lut)])        
+        self.assertEqual(rev_border_lut, check_lut_rev[:len(rev_border_lut)],
+                         'Reverse border LUTs not equal')
 
     def test_findAggregateBoundaries(self):
         agg_bounds = genbankfeatures.findAggregateBoundaries(
             RECODED_GB,
-            ['synth_fragment'], 
+            ['synth_fragment'],
             {'label': r'seg23.*'})
         self.assertEqual(agg_bounds, (1127000, 1176000))

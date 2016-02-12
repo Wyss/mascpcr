@@ -28,8 +28,8 @@ class TestPipeline(unittest.TestCase):
             border_lut = pipeline.generateLUTs(
                 genome_fp=RECODED_GENOME_FP,
                 ref_genome_fp=REFERENCE_GENOME_FP,
-                start_idx=start_idx,       
-                end_idx=end_idx,          
+                start_idx=start_idx,
+                end_idx=end_idx,
                 border_feature_types=['synth_fragment'],
                 cache_luts=True,
                 cache_dir=TEST_CACHE_DIR
@@ -40,7 +40,7 @@ class TestPipeline(unittest.TestCase):
         params = {
             'dump_params': False,
             'output_fp': TEST_CACHE_DIR,
-            'output_basename': 'seg23'  
+            'output_basename': 'seg23'
         }
         pipeline.findMascPrimers(
             idx_lut=idx_lut,
@@ -54,9 +54,9 @@ class TestPipeline(unittest.TestCase):
             params=params
         )
         # Now compare the output files to the expected output files
-        output_report_fp = os.path.join(TEST_CACHE_DIR, 
+        output_report_fp = os.path.join(TEST_CACHE_DIR,
                                         'seg23_masc_report.csv')
-        check_output_report_fp = os.path.join(TEST_OUTPUT_DIR, 
+        check_output_report_fp = os.path.join(TEST_OUTPUT_DIR,
                                               'seg23_masc_report.csv')
 
         # NOTE: Uncomment the following code to re-create expected output.
