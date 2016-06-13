@@ -7,6 +7,7 @@ from Bio import SeqIO
 
 
 LOCAL_DIR = os.path.dirname(os.path.realpath(__file__))
+TEST_INPUT_DIR = os.path.join(LOCAL_DIR, 'test_input')
 TEST_OUTPUT_DIR = os.path.join(LOCAL_DIR, 'test_output')
 TEST_CACHE_DIR = os.path.join(LOCAL_DIR, 'test_output', '.cache')
 
@@ -16,6 +17,7 @@ except OSError as e:
     if e.errno != 17:
         raise
 
+
 def rmCache():
     shutil.rmtree(TEST_CACHE_DIR)
 
@@ -23,11 +25,11 @@ atexit.register(rmCache)
 
 
 RECODED_GENOME_FP = os.path.join(
-    LOCAL_DIR, 'test_input', 'recoded_genome_1417977689.gb')
+    TEST_INPUT_DIR, 'recoded_genome_1417977689.gb')
 
 
 REFERENCE_GENOME_FP = os.path.join(
-    LOCAL_DIR, 'test_input', 'reference_genome.gb')
+    TEST_INPUT_DIR, 'reference_genome.gb')
 
 RECODED_GB = SeqIO.read(RECODED_GENOME_FP, 'gb')
 REFERENCE_GB = SeqIO.read(REFERENCE_GENOME_FP, 'gb')

@@ -175,17 +175,46 @@ def partitionCandidatesREV(primer_candidates,
 def findBestCommonPrimerIn3pEndRange(
         common_primer_end3p_range, strand, discriminatory_primer,
         genome_str, ref_genome_str, idx_lut, edge_lut, mismatch_lut,
-        primer_finder_params):
+        primer_finder_params, amplicon_size=None):
     """Finds best candidate primer 3p given range of ends to search over.
 
     Returns:
         primercandidate.CandidatePrimer, or None.
     """
     best_common_primer_candidate = None
-    for j in common_primer_end3p_range:
+
+    for end3p in common_primer_end3p_range:
+
+        # Set bounds on primer size for this end3p.
+        if amplicon_size is None:
+            primer_len_min = None
+            primer_len_max = None
+        else:
+            if discriminatory_primer.strand == 1:
+                discriminatory_primer_end5p = discriminatory_primer.idx
+            else:
+                discriminatory_primer_end5p = (discriminatory_primer.idx +
+                        discriminatory_primer.length)
+
+            primer_len_min = max(primer_finder_params['size_range'][0], (
+                    amplicon_size -
+                    primer_finder_params['product_size_tolerance'] -
+                    abs(end3p - discriminatory_primer_end5p)))
+
+            primer_len_max = min(primer_finder_params['size_range'][1], (
+                    amplicon_size +
+                    primer_finder_params['product_size_tolerance'] -
+                    abs(end3p - discriminatory_primer_end5p)))
+
+            assert primer_len_min <= primer_len_max, (
+                    primer_len_min, primer_len_max)
+            assert primer_len_min >= primer_finder_params['size_range'][0]
+            assert primer_len_max <= primer_finder_params['size_range'][1]
+
         candidate = primercandidate.findCommonPrimer(
-            j, strand, idx_lut, genome_str, ref_genome_str, edge_lut,
-            mismatch_lut, primer_finder_params)
+            end3p, strand, idx_lut, genome_str, ref_genome_str, edge_lut,
+            mismatch_lut, primer_finder_params, primer_len_min=primer_len_min,
+            primer_len_max=primer_len_max)
         if candidate is not None:
             heterodimer_tm = primer3.calcHeterodimer(
                     discriminatory_primer.seq,

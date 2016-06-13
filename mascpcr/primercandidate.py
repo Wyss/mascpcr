@@ -227,25 +227,31 @@ def findDiscriminatoryPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
 
 
 def findCommonPrimer(idx, strand, idx_lut, genome_str, ref_genome_str,
-                     edge_lut, mismatches_lut, params):
+                     edge_lut, mismatches_lut, params,
+                     primer_len_min=None, primer_len_max=None):
 
     # Initial param reconciliation
     tm_range = params.get('tm_range', (60, 65))
-    spurious_tm_clip = params.get('spurious_tm_clip', 40)
+    spurious_tm_clip = params.get('spurious_tm_clip', 50)
     size_range = params.get('size_range', (18, 30))
     thermo_params = params.get('thermo_params')
 
-    if idx - size_range[1] < 0 or idx + size_range[1] > (len(genome_str) - 2):
+    if primer_len_min is None:
+        primer_len_min = size_range[0]
+    if primer_len_max is None:
+        primer_len_max = size_range[1]
+
+    if idx - primer_len_max < 0 or idx + primer_len_max > (len(genome_str) - 2):
         return None
 
-    delta = size_range[0] - 1
-    delta_lim = size_range[1] + 1
+    delta = primer_len_min - 1
+    delta_lim = primer_len_max + 1
     prev_score = -1000
 
     # Candidate seq area is the total potential primer sequence from 5' to 3',
     # which we examine from the 3' end to the 5' end
     if strand == 1:
-        root_idx  = idx + 1  # + 1 for exclusive upper-bound idxing
+        root_idx = idx + 1  # + 1 for exclusive upper-bound idxing
         candidate_seq_area = genome_str[root_idx - delta_lim:root_idx]
     else:
         root_idx = idx
